@@ -1,4 +1,6 @@
+using System;
 using System.Linq;
+using System.Reflection;
 using Injact.Internal;
 
 namespace Injact
@@ -51,16 +53,20 @@ namespace Injact
             var requestingType = requestingObject.GetType();
 
             foreach (var property in requiredProperties)
-            {
-                var type = property.PropertyType;
-                property.SetValue(requestingObject, _container.Resolve(type, requestingType));
-            }
+                SetPropertyValue(property, requestingObject, requestingType);
 
             foreach (var property in optionalProperties)
-            {
-                var type = property.PropertyType;
-                property.SetValue(requestingObject, _container.Resolve(type, requestingType, false));
-            }
+                SetPropertyValue(property, requestingObject, requestingType, false);
+        }
+
+        private void SetPropertyValue(PropertyInfo property, object requestingObject, Type requestingType, bool throwOnNotFound = true)
+        {
+            var propertyType = property.PropertyType;
+            var backingField = requestingType.GetField($"<{property.Name}>k__BackingField", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+
+            Assert.IsNotNull(backingField, $"{nameof(InjectIntoProperties)} failed to find backing field for {property.Name} on {requestingType}!");
+
+            backingField?.SetValue(requestingObject, _container.Resolve(propertyType, requestingType, throwOnNotFound));
         }
 
         private void InjectIntoMethods(object requestingObject)
