@@ -11,8 +11,8 @@ namespace Injact
         private readonly Dictionary<Type, Binding> _bindings = new();
         private readonly Dictionary<Type, object> _instances = new();
         private readonly Queue<BindingStatement> _pendingBindings = new();
-        
-        public bool IsInitialised { get; private set; }
+
+        private Injector injector;
 
         public DiContainer()
         {
@@ -20,10 +20,14 @@ namespace Injact
             IsInitialised = true;
         }
 
+        public bool IsInitialised { get; private set; }
+
         private void InstallDefaultBindings()
         {
+            injector = new Injector(this);
+
             Bind<DiContainer>().FromInstance(this).AsSingleton();
-            Bind<Injector>().AsSingleton();
+            Bind<Injector>().FromInstance(injector).AsSingleton();
 
             ProcessPendingBindings();
         }
@@ -98,12 +102,13 @@ namespace Injact
 
                 var isSingleton = _instances.TryGetValue(requestedType, out var instance);
                 var hasInstance = instance != null;
-                
+
                 instance ??= Create(requestedType, requestingType);
+                injector.InjectInto(instance);
 
                 if (isSingleton && !hasInstance)
                     _instances[requestedType] = instance;
-                
+
                 return (TInterface)instance;
             }
 
