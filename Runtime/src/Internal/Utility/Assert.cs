@@ -74,7 +74,7 @@ namespace Injact.Internal
         {
             if (requestingType == null)
                 return;
-            
+
             bindings.TryGetValue(requestedType, out var binding);
 
             if (binding == null || !binding.AllowedInjectionTypes.Any())
