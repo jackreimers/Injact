@@ -97,6 +97,27 @@ namespace Injact.Tests.Editor
         }
 
         [Test]
+        public void Inject_PropertyInjection_InheritedProperty_Succeeds()
+        {
+            //Note: Property injection works by setting the value of the backing field
+            //If it works on one property it will work on all of them regardless of access modifier or if there is a setter
+
+            var container = new DiContainer();
+
+            container.Bind<TestClass_2>();
+            container.Bind<TestInterface_1, TestClass_1>();
+            container.ProcessPendingBindings();
+
+            var instance = new TestClass_Public_PropertyInjection_NoSetter_Inherited();
+            var injector = container.Resolve<Injector>(null);
+
+            injector.InjectInto(instance);
+
+            Assert.IsNotNull(instance.TestClass);
+            Assert.IsNotNull(instance.TestInterface);
+        }
+
+        [Test]
         public void Inject_PublicMethodInjection_Succeeds()
         {
             //Note: Property injection works by setting the value of the backing field

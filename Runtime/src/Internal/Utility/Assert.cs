@@ -20,6 +20,12 @@ namespace Injact.Internal
                 throw new NullReferenceException(message);
         }
 
+        public static void IsNotNullOrWhitespace(string value, string message)
+        {
+            if (value == null)
+                throw new NullReferenceException(message);
+        }
+
         public static void IsAssignable<TInterface, TConcrete>()
         {
             if (!typeof(TInterface).IsAssignableFrom(typeof(TConcrete)))
