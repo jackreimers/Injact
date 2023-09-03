@@ -120,9 +120,6 @@ namespace Injact.Tests.Editor
         [Test]
         public void Inject_PublicMethodInjection_Succeeds()
         {
-            //Note: Property injection works by setting the value of the backing field
-            //If it works on one property it will work on all of them regardless of access modifier or if there is a setter
-
             var container = new DiContainer();
 
             container.Bind<TestClass_2>();
@@ -141,9 +138,6 @@ namespace Injact.Tests.Editor
         [Test]
         public void Inject_ProtectedMethodInjection_Succeeds()
         {
-            //Note: Property injection works by setting the value of the backing field
-            //If it works on one property it will work on all of them regardless of access modifier or if there is a setter
-
             var container = new DiContainer();
 
             container.Bind<TestClass_2>();
@@ -162,9 +156,6 @@ namespace Injact.Tests.Editor
         [Test]
         public void Inject_PrivateMethodInjection_Succeeds()
         {
-            //Note: Property injection works by setting the value of the backing field
-            //If it works on one property it will work on all of them regardless of access modifier or if there is a setter
-
             var container = new DiContainer();
 
             container.Bind<TestClass_2>();

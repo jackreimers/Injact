@@ -45,6 +45,8 @@ namespace Injact.Tests.Shared
         [Inject] public TestInterface_1 TestInterface { get; } = null!;
     }
 
+    public class TestClass_Public_PropertyInjection_NoSetter_Inherited : TestClass_Public_PropertyInjection_NoSetter { }
+
     public class TestClass_Public_MethodInjection
     {
         public TestClass_2 TestClass { get; private set; }
