@@ -25,7 +25,7 @@ namespace Injact
 
         private void InjectIntoFields(object requestingObject)
         {
-            var fields = ReflectionUtils.GetAllFields(requestingObject.GetType());
+            var fields = ReflectionHelpers.GetAllFields(requestingObject.GetType());
 
             var requiredFields = fields.Where(s => s.GetCustomAttributes(typeof(InjectAttribute), true).Length > 0);
             var optionalFields = fields.Where(s => s.GetCustomAttributes(typeof(InjectOptionalAttribute), true).Length > 0);
@@ -60,7 +60,7 @@ namespace Injact
         private void SetPropertyValue(PropertyInfo property, object requestingObject, Type requestingType, bool throwOnNotFound = true)
         {
             var propertyType = property.PropertyType;
-            var backingField = ReflectionUtils.GetBackingField(requestingType, property.Name);
+            var backingField = ReflectionHelpers.GetBackingField(requestingType, property.Name);
 
             Assert.IsNotNull(backingField, $"{nameof(InjectIntoProperties)} failed to find backing field for {property.Name} on {requestingType}!");
 

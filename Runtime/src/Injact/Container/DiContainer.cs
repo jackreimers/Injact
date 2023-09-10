@@ -10,17 +10,15 @@ namespace Injact
     {
         private readonly Dictionary<Type, Binding> _bindings = new();
         private readonly Dictionary<Type, object> _instances = new();
-        private readonly Queue<BindingStatement> _pendingBindings = new();
+
+        private readonly Queue<IBindingStatement> _pendingBindings = new();
 
         private Injector injector;
 
         public DiContainer()
         {
             InstallDefaultBindings();
-            IsInitialised = true;
         }
-
-        public bool IsInitialised { get; private set; }
 
         private void InstallDefaultBindings()
         {
@@ -32,18 +30,32 @@ namespace Injact
             ProcessPendingBindings();
         }
 
-        public BindingStatement Bind<TInterface>()
-            => BindInternal<TInterface, TInterface>();
+        public ObjectBindingStatement Bind<TInterface>()
+        {
+            return BindInternal<TInterface, TInterface>();
+        }
 
-        public BindingStatement Bind<TInterface, TConcrete>()
-            => BindInternal<TInterface, TConcrete>();
+        public ObjectBindingStatement Bind<TInterface, TConcrete>()
+        {
+            return BindInternal<TInterface, TConcrete>();
+        }
 
-        private BindingStatement BindInternal<TInterface, TConcrete>()
+        public FactoryBindingStatement BindFactory<TInterface>()
+        {
+            return BindFactoryInternal<TInterface, TInterface>();
+        }
+
+        public FactoryBindingStatement BindFactory<TInterface, TConcrete>()
+        {
+            return BindFactoryInternal<TInterface, TConcrete>();
+        }
+
+        private ObjectBindingStatement BindInternal<TInterface, TConcrete>()
         {
             Assert.IsAssignable<TInterface, TConcrete>();
             Assert.IsNotExistingBinding(_bindings, typeof(TInterface));
 
-            var bindingInfo = new BindingStatement
+            var bindingInfo = new ObjectBindingStatement
             {
                 InterfaceType = typeof(TInterface),
                 ConcreteType = typeof(TConcrete)
@@ -51,6 +63,20 @@ namespace Injact
 
             _pendingBindings.Enqueue(bindingInfo);
             return bindingInfo;
+        }
+
+        private FactoryBindingStatement BindFactoryInternal<TInterface, TConcrete>()
+        {
+            Assert.IsNotExistingBinding(_bindings, typeof(TInterface));
+
+            var statement = new FactoryBindingStatement
+            {
+                InterfaceType = typeof(TInterface),
+                ConcreteType = typeof(TConcrete)
+            };
+
+            _pendingBindings.Enqueue(statement);
+            return statement;
         }
 
         public void ProcessPendingBindings()
@@ -68,29 +94,37 @@ namespace Injact
                 _bindings.Add(bindingStatement.InterfaceType, binding);
 
                 //There should never be a non singleton binding that has an instance set
-                if (!bindingStatement.Flags.HasFlag(BindingFlags.Singleton))
+                if (!bindingStatement.Flags.HasFlag(BindingFlags.Singleton) || bindingStatement is not ObjectBindingStatement concrete)
                     continue;
 
                 _instances.Add(
-                    bindingStatement.InterfaceType,
-                    bindingStatement.Instance != null || bindingStatement.Flags.HasFlag(BindingFlags.Immediate)
-                        ? bindingStatement.Instance ?? Create(bindingStatement.ConcreteType, null)
+                    concrete.InterfaceType,
+                    concrete.Instance != null || concrete.Flags.HasFlag(BindingFlags.Immediate)
+                        ? concrete.Instance ?? Create(concrete.ConcreteType, null)
                         : null
                 );
             }
         }
 
         public object Resolve(Type requestedType, Type requestingType, bool throwOnNotFound = true)
-            => ResolveInternal<object>(requestedType, requestingType, throwOnNotFound);
+        {
+            return ResolveInternal<object>(requestedType, requestingType, throwOnNotFound);
+        }
 
         public object Resolve(Type requestedType, object requestingObject, bool throwOnNotFound = true)
-            => ResolveInternal<object>(requestedType, requestingObject.GetType(), throwOnNotFound);
+        {
+            return ResolveInternal<object>(requestedType, requestingObject.GetType(), throwOnNotFound);
+        }
 
         public TInterface Resolve<TInterface>(Type requestingType, bool throwOnNotFound = true)
-            => ResolveInternal<TInterface>(typeof(TInterface), requestingType, throwOnNotFound);
+        {
+            return ResolveInternal<TInterface>(typeof(TInterface), requestingType, throwOnNotFound);
+        }
 
         public TInterface Resolve<TInterface>(object requestingObject, bool throwOnNotFound = true)
-            => ResolveInternal<TInterface>(typeof(TInterface), requestingObject.GetType(), throwOnNotFound);
+        {
+            return ResolveInternal<TInterface>(typeof(TInterface), requestingObject.GetType(), throwOnNotFound);
+        }
 
         private TInterface ResolveInternal<TInterface>(Type requestedType, Type requestingType, bool throwOnNotFound)
         {
@@ -128,7 +162,7 @@ namespace Injact
             Assert.IsNotAssignable(typeof(MonoBehaviour), requestedType);
 
             var binding = _bindings[requestedType];
-            var constructor = ReflectionUtils.GetConstructor(binding.ConcreteType);
+            var constructor = ReflectionHelpers.GetConstructor(binding.ConcreteType);
             var parameterTypes = constructor.GetParameters();
 
             Assert.IsNotCircular(_bindings, binding, parameterTypes);

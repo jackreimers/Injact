@@ -59,7 +59,7 @@ namespace Injact.Internal
         public static void IsNotExistingBinding(Dictionary<Type, Binding> bindings, Type type)
         {
             if (bindings.ContainsKey(type))
-                throw new DependencyException($"Cannot add duplicate binding of type {type} to container!");
+                throw new DependencyException($"Binding of type {type} already exists!");
         }
 
         public static void IsNotCircular(Dictionary<Type, Binding> bindings, Binding binding, IEnumerable<ParameterInfo> rootParameters)
@@ -70,7 +70,7 @@ namespace Injact.Internal
                 if (!isRelevant)
                     continue;
 
-                var parameters = ReflectionUtils.GetParameters(parameterBinding.ConcreteType);
+                var parameters = ReflectionHelpers.GetParameters(parameterBinding.ConcreteType);
                 if (parameters.Any(s => s.ParameterType == binding.ConcreteType))
                     throw new DependencyException($"Requested type of {binding.InterfaceType} contains a circular dependency!");
             }
@@ -91,10 +91,19 @@ namespace Injact.Internal
                 throw new DependencyException($"{requestingType} requested type of {requestedType} when it is not allowed to!");
         }
 
-        public static void IsValidBindingStatement(BindingStatement bindingStatement)
+        public static void IsValidBindingStatement(IBindingStatement bindingStatement)
         {
-            if (bindingStatement.Instance != null && !bindingStatement.Flags.HasFlag(BindingFlags.Singleton))
-                throw new DependencyException($"{bindingStatement.InterfaceType} is not marked as a singleton yet has an instance provided!");
+            switch (bindingStatement.BindingType)
+            {
+                case BindingType.Object: break;
+
+                case BindingType.Factory: break;
+
+                default: throw new ArgumentOutOfRangeException();
+            }
+
+            //if (bindingStatement.Instance != null && !bindingStatement.Flags.HasFlag(BindingFlags.Singleton))
+            //    throw new DependencyException($"{bindingStatement.InterfaceType} is not marked as a singleton yet has an instance provided!");
         }
     }
 }

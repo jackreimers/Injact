@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace Injact.Internal
 {
-    public static class ReflectionUtils
+    public static class ReflectionHelpers
     {
         public static ConstructorInfo GetConstructor(Type type)
         {
