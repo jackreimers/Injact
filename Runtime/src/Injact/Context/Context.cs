@@ -7,10 +7,12 @@ namespace Injact
     public class Context : MonoBehaviour
     {
         [SerializeField] private List<MonoInstaller> monoInstallers = new();
+        [SerializeField] private List<ScriptableObjectInstaller> scriptableInstallers = new();
 
         private DiContainer _container;
         private Injector _injector;
 
+        public List<Installer> Installers { get; set; } = new();
         public List<MonoInstaller> MonoInstallers => monoInstallers;
 
         private void Awake()

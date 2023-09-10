@@ -55,7 +55,7 @@ namespace Injact
             return binding;
         }
 
-        public static ObjectBindingStatement NonImmediate(this ObjectBindingStatement binding)
+        public static ObjectBindingStatement Delayed(this ObjectBindingStatement binding)
         {
             binding.Flags &= ~BindingFlags.Immediate;
             return binding;

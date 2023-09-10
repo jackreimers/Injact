@@ -95,15 +95,24 @@ namespace Injact.Internal
         {
             switch (bindingStatement.BindingType)
             {
-                case BindingType.Object: break;
+                case BindingType.Object:
+                    IsValidObjectBindingStatement(bindingStatement as ObjectBindingStatement);
+                    break;
 
-                case BindingType.Factory: break;
+                case BindingType.Factory:
+                    IsValidFactoryBindingStatement(bindingStatement as FactoryBindingStatement);
+                    break;
 
                 default: throw new ArgumentOutOfRangeException();
             }
-
-            //if (bindingStatement.Instance != null && !bindingStatement.Flags.HasFlag(BindingFlags.Singleton))
-            //    throw new DependencyException($"{bindingStatement.InterfaceType} is not marked as a singleton yet has an instance provided!");
         }
+
+        public static void IsValidObjectBindingStatement(ObjectBindingStatement bindingStatement)
+        {
+            if (bindingStatement.Flags.HasFlag(BindingFlags.Singleton) && bindingStatement.Instance == null)
+                throw new DependencyException($"{bindingStatement.InterfaceType} is marked as a singleton but has no instance provided!");
+        }
+
+        public static void IsValidFactoryBindingStatement(FactoryBindingStatement bindingStatement) { }
     }
 }
