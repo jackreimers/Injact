@@ -109,10 +109,18 @@ namespace Injact.Internal
 
         public static void IsValidObjectBindingStatement(ObjectBindingStatement bindingStatement)
         {
+            IsNotNull(bindingStatement, "Binding statement cannot be null!");
+            
             if (bindingStatement.Flags.HasFlag(BindingFlags.Singleton) && bindingStatement.Instance == null)
                 throw new DependencyException($"{bindingStatement.InterfaceType} is marked as a singleton but has no instance provided!");
         }
 
-        public static void IsValidFactoryBindingStatement(FactoryBindingStatement bindingStatement) { }
+        public static void IsValidFactoryBindingStatement(FactoryBindingStatement bindingStatement)
+        {
+            IsNotNull(bindingStatement, "Binding statement cannot be null!");
+
+            if (bindingStatement.ObjectType == null)
+                throw new DependencyException($"{nameof(bindingStatement.ObjectType)} is null on {bindingStatement.InterfaceType} factory binding!");
+        }
     }
 }
