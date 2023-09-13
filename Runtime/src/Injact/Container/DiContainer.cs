@@ -88,12 +88,11 @@ namespace Injact
                 var bindingStatement = _pendingBindings.Dequeue();
                 var binding = new Binding(bindingStatement.ConcreteType, bindingStatement.AllowedInjectionTypes);
 
-                Assert.IsValidBindingStatement(bindingStatement);
-
                 switch (bindingStatement.BindingType)
                 {
                     case BindingType.Object:
                     {
+                        Assert.IsValidBindingStatement(bindingStatement);
                         _bindings.Add(bindingStatement.InterfaceType, binding);
 
                         //There should never be a non singleton binding that has an instance set
@@ -113,7 +112,7 @@ namespace Injact
                     case BindingType.Factory:
                     {
                         var factoryStatement = bindingStatement as FactoryBindingStatement;
-                        Assert.IsNotNull(factoryStatement, $"Failed to cast statement for {bindingStatement.InterfaceType} to {nameof(FactoryBindingStatement)}!");
+                        Assert.IsValidFactoryBindingStatement(factoryStatement);
 
                         _bindings.Add(factoryStatement!.InterfaceType, binding);
                         _bindings.Add(factoryStatement!.ConcreteType, binding);
