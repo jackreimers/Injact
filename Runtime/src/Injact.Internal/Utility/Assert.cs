@@ -72,7 +72,7 @@ namespace Injact.Internal
 
                 var parameters = ReflectionHelpers.GetParameters(parameterBinding.ConcreteType);
                 if (parameters.Any(s => s.ParameterType == binding.ConcreteType))
-                    throw new DependencyException($"Requested type of {binding.InterfaceType} contains a circular dependency!");
+                    throw new DependencyException($"Requested type of {parameter.ParameterType} contains a circular dependency!");
             }
         }
 

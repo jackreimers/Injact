@@ -40,16 +40,6 @@ namespace Injact
             return BindInternal<TInterface, TConcrete>();
         }
 
-        public FactoryBindingStatement BindFactory<TInterface>()
-        {
-            return BindFactoryInternal<TInterface, TInterface>();
-        }
-
-        public FactoryBindingStatement BindFactory<TInterface, TConcrete>()
-        {
-            return BindFactoryInternal<TInterface, TConcrete>();
-        }
-
         private ObjectBindingStatement BindInternal<TInterface, TConcrete>()
         {
             Assert.IsAssignable<TInterface, TConcrete>();
@@ -58,21 +48,30 @@ namespace Injact
             var bindingInfo = new ObjectBindingStatement
             {
                 InterfaceType = typeof(TInterface),
-                ConcreteType = typeof(TConcrete)
+                ConcreteType = typeof(TConcrete),
+                BindingType = BindingType.Object
             };
 
             _pendingBindings.Enqueue(bindingInfo);
             return bindingInfo;
         }
 
-        private FactoryBindingStatement BindFactoryInternal<TInterface, TConcrete>()
+        public FactoryBindingStatement BindFactory<TInterface, TObject>()
         {
-            Assert.IsNotExistingBinding(_bindings, typeof(TInterface));
+            return BindFactoryInternal<TInterface, TObject>();
+        }
+
+        private FactoryBindingStatement BindFactoryInternal<TFactory, TObject>()
+        {
+            Assert.IsNotExistingBinding(_bindings, typeof(TFactory));
+            Assert.IsNotExistingBinding(_bindings, typeof(IFactory<TObject>));
 
             var statement = new FactoryBindingStatement
             {
-                InterfaceType = typeof(TInterface),
-                ConcreteType = typeof(TConcrete)
+                InterfaceType = typeof(IFactory<TObject>),
+                ConcreteType = typeof(TFactory),
+                ObjectType = typeof(TObject),
+                BindingType = BindingType.Factory
             };
 
             _pendingBindings.Enqueue(statement);
@@ -87,22 +86,43 @@ namespace Injact
             while (_pendingBindings.Count > 0)
             {
                 var bindingStatement = _pendingBindings.Dequeue();
-                var binding = new Binding(bindingStatement.InterfaceType, bindingStatement.ConcreteType, bindingStatement.AllowedInjectionTypes);
+                var binding = new Binding(bindingStatement.ConcreteType, bindingStatement.AllowedInjectionTypes);
 
                 Assert.IsValidBindingStatement(bindingStatement);
 
-                _bindings.Add(bindingStatement.InterfaceType, binding);
+                switch (bindingStatement.BindingType)
+                {
+                    case BindingType.Object:
+                    {
+                        _bindings.Add(bindingStatement.InterfaceType, binding);
 
-                //There should never be a non singleton binding that has an instance set
-                if (!bindingStatement.Flags.HasFlag(BindingFlags.Singleton) || bindingStatement is not ObjectBindingStatement concrete)
-                    continue;
+                        //There should never be a non singleton binding that has an instance set
+                        if (!bindingStatement.Flags.HasFlag(BindingFlags.Singleton) || bindingStatement is not ObjectBindingStatement concrete)
+                            continue;
 
-                _instances.Add(
-                    concrete.InterfaceType,
-                    concrete.Instance != null || concrete.Flags.HasFlag(BindingFlags.Immediate)
-                        ? concrete.Instance ?? Create(concrete.ConcreteType, null)
-                        : null
-                );
+                        _instances.Add(
+                            concrete.InterfaceType,
+                            concrete.Instance != null || concrete.Flags.HasFlag(BindingFlags.Immediate)
+                                ? concrete.Instance ?? Create(concrete.ConcreteType, null)
+                                : null
+                        );
+
+                        break;
+                    }
+
+                    case BindingType.Factory:
+                    {
+                        var factoryStatement = bindingStatement as FactoryBindingStatement;
+                        Assert.IsNotNull(factoryStatement, $"Failed to cast statement for {bindingStatement.InterfaceType} to {nameof(FactoryBindingStatement)}!");
+
+                        _bindings.Add(factoryStatement!.InterfaceType, binding);
+                        _bindings.Add(factoryStatement!.ConcreteType, binding);
+
+                        break;
+                    }
+
+                    default: throw new ArgumentOutOfRangeException();
+                }
             }
         }
 
