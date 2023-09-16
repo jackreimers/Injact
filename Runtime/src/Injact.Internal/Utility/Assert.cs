@@ -50,19 +50,19 @@ namespace Injact.Internal
                 throw new DependencyException($"Type {concreteType} is assignable to {interfaceType} when it shouldn't be!");
         }
 
-        public static void IsExistingBinding(Dictionary<Type, Binding> bindings, Type type)
+        public static void IsExistingBinding(Bindings bindings, Type type)
         {
             if (!bindings.ContainsKey(type))
                 throw new DependencyException($"Requested type of {type} has not been bound!");
         }
 
-        public static void IsNotExistingBinding(Dictionary<Type, Binding> bindings, Type type)
+        public static void IsNotExistingBinding(Bindings bindings, Type type)
         {
             if (bindings.ContainsKey(type))
                 throw new DependencyException($"Binding of type {type} already exists!");
         }
 
-        public static void IsNotCircular(Dictionary<Type, Binding> bindings, Binding binding, IEnumerable<ParameterInfo> rootParameters)
+        public static void IsNotCircular(Bindings bindings, Binding binding, IEnumerable<ParameterInfo> rootParameters)
         {
             foreach (var parameter in rootParameters)
             {
@@ -76,7 +76,7 @@ namespace Injact.Internal
             }
         }
 
-        public static void IsLegalInjection(Dictionary<Type, Binding> bindings, Type requestedType, Type requestingType)
+        public static void IsLegalInjection(Bindings bindings, Type requestedType, Type requestingType)
         {
             if (requestingType == null)
                 return;
@@ -110,7 +110,7 @@ namespace Injact.Internal
         public static void IsValidObjectBindingStatement(ObjectBindingStatement bindingStatement)
         {
             IsNotNull(bindingStatement, "Binding statement cannot be null!");
-            
+
             if (bindingStatement.Flags.HasFlag(BindingFlags.Singleton) && bindingStatement.Instance == null)
                 throw new DependencyException($"{bindingStatement.InterfaceType} is marked as a singleton but has no instance provided!");
         }

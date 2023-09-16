@@ -6,9 +6,11 @@ using UnityEngine;
 
 namespace Injact
 {
+    public class Bindings : Dictionary<Type, Binding> { }
+
     public class DiContainer
     {
-        private readonly Dictionary<Type, Binding> _bindings = new();
+        private readonly Bindings _bindings = new();
         private readonly Dictionary<Type, object> _instances = new();
 
         private readonly Queue<IBindingStatement> _pendingBindings = new();
@@ -35,7 +37,7 @@ namespace Injact
             return BindInternal<TInterface, TInterface>();
         }
 
-        public ObjectBindingStatement Bind<TInterface, TConcrete>()
+        public ObjectBindingStatement Bind<TInterface, TConcrete>() where TConcrete : TInterface
         {
             return BindInternal<TInterface, TConcrete>();
         }
@@ -56,9 +58,9 @@ namespace Injact
             return bindingInfo;
         }
 
-        public FactoryBindingStatement BindFactory<TInterface, TObject>()
+        public FactoryBindingStatement BindFactory<TFactory, TObject>() where TFactory : IFactory<TObject>
         {
-            return BindFactoryInternal<TInterface, TObject>();
+            return BindFactoryInternal<TFactory, TObject>();
         }
 
         private FactoryBindingStatement BindFactoryInternal<TFactory, TObject>()
