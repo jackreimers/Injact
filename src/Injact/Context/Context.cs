@@ -1,39 +1,49 @@
-using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
+using System.Diagnostics;
+using Godot;
+using Injact.Internal;
 
 namespace Injact
 {
-    public class Context : MonoBehaviour
+    public partial class Context : Node
     {
-        [SerializeField] private List<MonoInstaller> monoInstallers = new();
-        [SerializeField] private List<ScriptableObjectInstaller> scriptableInstallers = new();
+        [Export] private bool injectIntoNodes = true;
+        [Export] private bool loggingEnabled = true;
+        [Export] private bool profilingEnabled = true;
+        [Export] private NodeInstaller[] installers;
 
         private DiContainer _container;
         private Injector _injector;
 
-        public List<Installer> Installers { get; set; } = new();
-        public List<MonoInstaller> MonoInstallers => monoInstallers;
-
-        private void Awake()
+        public override void _EnterTree()
         {
-            _container = new DiContainer();
+            _container = new DiContainer(loggingEnabled, profilingEnabled);
             _injector = _container.Resolve<Injector>(this);
 
-            foreach (var installer in monoInstallers)
+            foreach (var installer in installers)
             {
                 _injector.InjectInto(installer);
                 installer.InstallBindings();
             }
 
             _container.ProcessPendingBindings();
-            ResolveAllInScene();
+
+            if (injectIntoNodes)
+                ResolveAllInScene();
+
+            base._EnterTree();
         }
 
         private void ResolveAllInScene()
         {
-            foreach (var monoBehaviour in FindObjectsOfType<MonoBehaviour>().Where(s => s.enabled))
-                _injector.InjectInto(monoBehaviour);
+            var profile = GodotHelpers.ProfileIf(profilingEnabled, "Resolved all scene nodes in {0}ms.");
+            var nodes = GodotHelpers.GetAllChildNodes(GetTree().Root);
+            
+            GodotHelpers.PrintIf(loggingEnabled, $"Found {nodes.Count} nodes in scene.");
+
+            foreach (var node in nodes)
+                _injector.InjectInto(node);
+            
+            profile?.Invoke();
         }
     }
 }

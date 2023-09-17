@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Injact.Internal;
-using UnityEngine;
 
 namespace Injact
 {
@@ -24,16 +23,6 @@ namespace Injact
             Assert.IsNotNull(instance, $"Null instance reference on {binding.InterfaceType.Name} binding!");
 
             binding.Instance = instance;
-            return binding;
-        }
-
-        public static ObjectBindingStatement FromComponent(this ObjectBindingStatement binding, MonoBehaviour component)
-        {
-            Assert.IsNotNull(component, $"Null component reference on {binding.InterfaceType.Name} binding!");
-
-            binding.Instance = component;
-            binding.Flags |= BindingFlags.Singleton;
-
             return binding;
         }
 

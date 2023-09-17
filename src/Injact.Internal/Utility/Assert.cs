@@ -2,19 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using UnityEngine;
 
 namespace Injact.Internal
 {
     public static class Assert
     {
         public static void IsNotNull(object obj, string message)
-        {
-            if (obj == null)
-                throw new NullReferenceException(message);
-        }
-
-        public static void IsNotNull(GameObject obj, string message)
         {
             if (obj == null)
                 throw new NullReferenceException(message);

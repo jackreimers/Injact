@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Godot;
 using Injact.Internal;
-using UnityEngine;
 
 namespace Injact
 {
@@ -14,6 +14,8 @@ namespace Injact
         private readonly Dictionary<Type, object> _instances = new();
 
         private readonly Queue<IBindingStatement> _pendingBindings = new();
+        private readonly bool _loggingEnabled;
+        private readonly bool _profilingEnabled;
 
         private Injector injector;
 
@@ -21,15 +23,32 @@ namespace Injact
         {
             InstallDefaultBindings();
         }
+        
+        public DiContainer(bool loggingEnabled)
+        {
+            _loggingEnabled = loggingEnabled;
+            InstallDefaultBindings();
+        }
+        
+        public DiContainer(bool loggingEnabled, bool profilingEnabled)
+        {
+            _loggingEnabled = loggingEnabled;
+            _profilingEnabled = profilingEnabled;
+            InstallDefaultBindings();
+        }
 
         private void InstallDefaultBindings()
         {
+            var profile = GodotHelpers.ProfileIf(_profilingEnabled, "Container initialised in {0}ms.");
+            
             injector = new Injector(this);
 
             Bind<DiContainer>().FromInstance(this).AsSingleton();
             Bind<Injector>().FromInstance(injector).AsSingleton();
 
             ProcessPendingBindings();
+            
+            profile?.Invoke();
         }
 
         public ObjectBindingStatement Bind<TInterface>()
@@ -180,7 +199,6 @@ namespace Injact
         {
             Assert.IsNotNull(requestedType, $"Requested type cannot be null when calling {nameof(Create)}!");
             Assert.IsExistingBinding(_bindings, requestedType);
-            Assert.IsNotAssignable(typeof(MonoBehaviour), requestedType);
 
             var binding = _bindings[requestedType];
             var constructor = ReflectionHelpers.GetConstructor(binding.ConcreteType);
