@@ -2,21 +2,21 @@
 
 Injact is a simple, easy to use dependency injection container for Godot 4 written in C#.
 
-## Installation 📦
+## 📦 Installation
 > **Note**  
 > Self contained package/plugin is planned.
 1. Clone the repository into somewhere in your projects `res://` directory, I recommend a separate folder such as `res://addons`.
 
-## Project Setup 🛠️
+## 🛠️ Project Setup
 1. Add a node to your scene and attach the `Context.cs` script to it.
 2. Set your desired settings for your scene context in the inspector.
 3. Create an installer and add it to the context - see [Installers](#installers) for more information.
 
-## Context 🧩
+## 🧩 Context
 The context acts as the root of the dependency injection container.  
 It is responsible for creating the container and binding installers to it, and there should never be more than one context in a scene.
 
-### Settings ⚙️
+### Settings 
 `Inject Into Nodes`  
 - If enabled, Injact will attempt to inject dependencies into all nodes in the scene.  
 - Default: `true`
@@ -37,7 +37,7 @@ It is responsible for creating the container and binding installers to it, and t
 - If enabled, Injact will log performance information to the console.
 - Default: `false`
 
-## Installers 🧰
+## 🧰 Installers
 There are two types of installers used to bind dependencies to the container.
 
 `Installer` 
@@ -48,11 +48,11 @@ There are two types of installers used to bind dependencies to the container.
 - Intended for binding Godot nodes to the container, but can also be used for native C# classes.
 - Interacts with the Godot editor and must exist as a node in the scene tree.
 
-#### Creating an Installer 🧩
+#### Creating an Installer
 1. Create a new class that inherits from `Installer` or `NodeInstaller`.
 2. Override the `InstallBindings` method.
 
-#### Creating Bindings 🪄
+#### Creating Bindings
 Classes can be bound to containers using the following syntax.
 
 ```csharp
@@ -81,7 +81,7 @@ public class MyNodeInstaller : NodeInstaller
 }
 ```
 
-## Bindings 🪄
+## 🪄 Bindings
 When binding classes or objects you can use chained methods to specify how the object should be bound to the container.  
 Below are all the available methods and their use cases.
 
@@ -220,26 +220,26 @@ public override void InstallBindings()
 }
 ```
 
-## Injection 💉
+## 💉 Injection
 Injact supports constructor, field, property and method injection via the `[Inject]` and `[InjectOptional]` attributes.  
 There are different use cases for each type, but ultimately it is up to you which you use.
 
-### Attributes 🏷️
+### Attributes
 - If the requested type is not found when using `[Inject]` an exception will be thrown.
 - If the requested type is not found when using `[InjectOptional]` the injected value will be null and no exception will be thrown.
 
-### Key Points 🔑
+### Key Points
 - Injection occurs on `_EnterTree()`. 
 - You should not attempt to access injected values until or after `_Ready()`.
 - Fields, properties and methods **do not** need to be public to be injected into.
 - Properties **do not** need a setter to be injected into.
 - Fields **can** be injected into if they are readonly. 
 
-### Limitations ⚠️
+### Limitations️
 - Constructor injection **is not** supported for Godot nodes.
 - Injection will not occur if an object is created using `new` instead of being created by the container - see [Factories](#factories) for more information.
 
-### Constructor Injection ⚙️
+### Constructor Injection
 > **Warning**  
 > Constructor injection **is not** supported for Godot nodes.
 
@@ -260,7 +260,7 @@ public class MyClass
 
 In the above example, provided the required binding is set up, `MyClass` will be injected with an instance of `IClass` when it is created.
 
-### Field Injection ⚙️
+### Field Injection
 Decorate a field with `[Inject]` or `[InjectOptional]` to have it injected into.
 
 ```csharp
@@ -270,7 +270,7 @@ public class MyClass : Node
 }
 ```
 
-### Property Injection ⚙️
+### Property Injection
 > **Note**  
 > Properties can be injected into regardless of whether they have a setter.  
 
@@ -285,7 +285,7 @@ public class MyClass : Node
 }
 ```
 
-### Method Injection ⚙️
+### Method Injection
 Decorate a method of any type or name with `[Inject]` or `[InjectOptional]` to have it injected into.
 
 ```csharp
@@ -301,14 +301,14 @@ public class MyClass : Node
 }
 ```
 
-### Lazy Injection 💤
+### Lazy Injection
 Lazy injection is not currently supported but is a planned feature.
 
-## Factories 🏭
+## 🏭 Factories
 Factories can be used to create objects at runtime whilst ensuring they get their dependencies injected.  
 If you are creating an object that expects dependencies at runtime, you should always use a factory to create it.
 
-### Creating a Factory 🧩
+### Creating a Factory
 You can create a factory similarly to creating an installer.
 
 1. Create a class that inherits from `Factory<TValue>`.
@@ -334,11 +334,11 @@ public override void InstallBindings()
 }
 ```
 
-### Using Factories 🏭
+### Using Factories
 Once a factory is bound to the container, you can inject it into any class and use it to create objects.  
 Factories can be resolved using their concrete type or their interface, i.e. `MyClass.Factory` or `IFactory<MyClass>`.
 
-#### Creating Objects 🧩
+#### Creating Objects
 Once the factory has been resolved, call the `Create()` method to return a new object with its dependencies injected.
 
 ```csharp
@@ -353,8 +353,8 @@ public class MyClass : Node
 }
 ```
 
-#### Creating Objects with Parameters 🧩
+#### Creating Objects with Parameters
 Passing parameters to factories during creation is not currently supported but is a planned feature.
 
-### Custom Factories 🏭
+### Custom Factories
 If you need to create a factory that does something more complex than just creating an object, you can create a custom factory by inheriting from `Factory<T>` and overriding the `Create()` method, or implementing `IFactory<T>`.
