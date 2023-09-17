@@ -242,6 +242,8 @@ public class MyClass : Node
 ```
 
 ### Method Injection
+Decorate a method with `[Inject]` or `[InjectOptional]` to have it injected into.
+
 ```csharp
 public class MyClass : Node
 {
