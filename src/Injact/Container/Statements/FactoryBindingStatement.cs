@@ -16,21 +16,4 @@ public class FactoryBindingStatement : IBindingStatement
     public BindingType BindingType { get; set; }
 }
 
-public static class FactoryBindingStatementExtensions
-{
-    public static FactoryBindingStatement ForType<TInterface>(this FactoryBindingStatement binding)
-    {
-        Assert.IsNotNull(typeof(TInterface), $"Cannot bind factory for null type on {binding.InterfaceType.Name} binding!");
-
-        binding.ObjectType = typeof(TInterface);
-        return binding;
-    }
-
-    public static FactoryBindingStatement ForType(this FactoryBindingStatement binding, Type type)
-    {
-        Assert.IsNotNull(type, $"Cannot bind factory for null type on {binding.InterfaceType.Name} binding!");
-
-        binding.ObjectType = type;
-        return binding;
-    }
-}
+public static class FactoryBindingStatementExtensions { }
