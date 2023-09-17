@@ -1,6 +1,6 @@
 ﻿# Injact
 
-Injact is a simple dependency injection container for Godot 4 written in C#.
+Injact is a simple, easy to use dependency injection container for Godot 4 written in C#.
 
 ## Installation
 > **Note**  
@@ -243,7 +243,8 @@ public class MyClass : Node
 ```
 
 ### Method Injection
-Decorate a method with `[Inject]` or `[InjectOptional]` to have it injected into.
+Decorate a method with `[Inject]` or `[InjectOptional]` to have it injected into.  
+The method can be named anything.
 
 ```csharp
 public class MyClass : Node
