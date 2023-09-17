@@ -25,6 +25,7 @@ Injact is a simple dependency injection container for Godot 4 written in C#.
    - `Profiling Enabled` 
      - If enabled, Injact will log performance information to the console.
      - Default: `false`
+3. Create an installer and add it to the context - see [Installers](#installers) for more information.
 
 ## Installers
 There are two types of installers used to bind dependencies to the container.
