@@ -171,6 +171,6 @@ public override void InstallBindings()
     Container
         .Bind<IClass, MyClass>()
         .AsSingleton()
-        .Immediate();
+        .Delayed();
 }
 ```
