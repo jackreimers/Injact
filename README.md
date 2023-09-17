@@ -3,14 +3,13 @@
 Injact is a simple, easy to use dependency injection container for Godot 4 written in C#.
 
 ## 📦 Installation
+1. Clone the repository into somewhere in your projects `res://` directory, I recommend a separate folder such as `res://addons`.
 > **Note**  
 > Self contained package/plugin is planned.
-1. Clone the repository into somewhere in your projects `res://` directory, I recommend a separate folder such as `res://addons`.
 
 ## 🛠️ Project Setup
 1. Add a node to your scene and attach the `Context.cs` script to it.
 2. Set your desired settings for your scene context in the inspector.
-   
 3. Create an installer and add it to the context - see [Installers](#installers) for more information.
 
 ## 🧩 Context
@@ -339,7 +338,7 @@ public override void InstallBindings()
 Once a factory is bound to the container, you can inject it into any class and use it to create objects.  
 Factories can be resolved using their concrete type or their interface, i.e. `MyClass.Factory` or `IFactory<MyClass>`.
 
-#### Creating Objects
+#### 🧩 Creating Objects
 Once the factory has been resolved, call the `Create()` method to return a new object with its dependencies injected.
 
 ```csharp
@@ -354,7 +353,7 @@ public class MyClass : Node
 }
 ```
 
-#### ⚙️ Creating Objects with Parameters
+#### 🧩 Creating Objects with Parameters
 Passing parameters to factories during creation is not currently supported but is a planned feature.
 
 ### 🏭 Custom Factories
