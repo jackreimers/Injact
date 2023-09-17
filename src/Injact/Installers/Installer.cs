@@ -1,9 +1,8 @@
-﻿namespace Injact
-{
-    public abstract class Installer : IInstaller
-    {
-        [Inject] public DiContainer Container { get; } = null!;
+﻿namespace Injact;
 
-        public abstract void InstallBindings();
-    }
+public abstract class Installer : IInstaller
+{
+    [Inject] public DiContainer Container { get; } = null!;
+
+    public abstract void InstallBindings();
 }

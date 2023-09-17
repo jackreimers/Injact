@@ -1,9 +1,8 @@
-﻿namespace Injact
-{
-    public interface IInstaller
-    {
-        public DiContainer Container { get; }
+﻿namespace Injact;
 
-        public void InstallBindings();
-    }
+public interface IInstaller
+{
+    public DiContainer Container { get; }
+
+    public void InstallBindings();
 }

@@ -1,11 +1,10 @@
 using System;
 
-namespace Injact
+namespace Injact;
+
+[Flags]
+public enum BindingFlags
 {
-    [Flags]
-    public enum BindingFlags
-    {
-        Singleton = 1 << 0,
-        Immediate = 1 << 1
-    }
+    Singleton = 1 << 0,
+    Immediate = 1 << 1
 }

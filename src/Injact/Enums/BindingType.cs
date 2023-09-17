@@ -1,8 +1,7 @@
-﻿namespace Injact
+﻿namespace Injact;
+
+public enum BindingType
 {
-    public enum BindingType
-    {
-        Factory,
-        Object
-    }
+    Factory,
+    Object
 }

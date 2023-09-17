@@ -1,9 +1,8 @@
-﻿namespace Injact
-{
-    public interface IFactory { }
+﻿namespace Injact;
 
-    public interface IFactory<out TValue> : IFactory
-    {
-        public TValue Create();
-    }
+public interface IFactory { }
+
+public interface IFactory<out TValue> : IFactory
+{
+    public TValue Create();
 }
