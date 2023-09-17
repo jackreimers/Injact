@@ -3,9 +3,9 @@
 Injact is a simple dependency injection container for Godot 4 written in C#.
 
 ## Installation
-1. Clone the repository into somewhere in your projects `res://` directory, I recommend a separate folder such as `res://addons`.
 > **Note**  
 > Self contained package/plugin is planned.
+1. Clone the repository into somewhere in your projects `res://` directory, I recommend a separate folder such as `res://addons`.
 
 ## Project Setup
 1. Add a node to your scene and attach the `Context.cs` script to it.
@@ -14,7 +14,7 @@ Injact is a simple dependency injection container for Godot 4 written in C#.
      - If enabled, Injact will attempt to inject dependencies into all nodes in the scene.
      - Default: `true`
    - `Search For Installers` 
-     - If enabled Injact will search for installers in the scene and add them to the context. This saves you having to manually set installers in the inspector, but will be less performant on larger projects.
+     - If enabled, Injact will search for installers in the scene and add them to the context. This saves you having to manually set installers in the inspector, but will be less performant on larger projects.
      - Default: `false`
    - `Installers` 
      - A list of the node installers to be used by the context, see below for more information.
@@ -72,7 +72,6 @@ public class MyNodeInstaller : NodeInstaller
 
 ## Bindings
 When binding classes or objects you can use chained methods to specify how the object should be bound to the container.  
-Bindings can be defined via an interface or a concrete class.
 
 ### Bind\<TConcrete\>  
 - `TConcrete` must be a non-abstract concrete class.
