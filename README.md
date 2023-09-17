@@ -13,8 +13,8 @@ Injact is a simple, easy to use dependency injection container for Godot 4 writt
 3. Create an installer and add it to the context - see [Installers](#installers) for more information.
 
 ## 🧩 Context
-The context acts as the root of the dependency injection container.  
-It is responsible for creating the container and binding installers to it, and there should never be more than one context in a scene.
+The context acts as the root of the dependency injection container, it is responsible for creating the container and binding installers to it.  
+There should never be more than one context in a scene.
 
 ### Settings 
 `Inject Into Nodes`  
@@ -22,8 +22,11 @@ It is responsible for creating the container and binding installers to it, and t
 - Default: `true`
 
 `Search For Installers`  
-- If enabled, Injact will search for installers in the scene and add them to the context. This saves you having to manually set installers in the inspector, but will be less performant on larger projects.
+- If enabled, Injact will search for installers in the scene and add them to the context. This saves you having to manually set installers in the inspector, but may be less performant on larger projects.
 - Default: `false`
+
+> **Note**  
+> If you are using `Inject Into Nodes` the performance impact of `Search For Installers` will be near zero. 
 
 `Installers`  
 - A list of the node installers to be used by the context, see [Installers](#installers) for more information.
@@ -272,7 +275,7 @@ public class MyClass : Node
 
 ### Property Injection
 > **Note**  
-> Properties can be injected into regardless of whether they have a setter.  
+> Properties can be injected into regardless of whether or not they have a setter.  
 
 Decorate a property with `[Inject]` or `[InjectOptional]` to have it injected into.
 
