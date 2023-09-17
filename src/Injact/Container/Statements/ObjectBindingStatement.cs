@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Godot;
 using Injact.Internal;
 
 namespace Injact
@@ -21,8 +22,18 @@ namespace Injact
         public static ObjectBindingStatement FromInstance(this ObjectBindingStatement binding, object instance)
         {
             Assert.IsNotNull(instance, $"Null instance reference on {binding.InterfaceType.Name} binding!");
-
+            
+            binding.Flags |= BindingFlags.Singleton;
             binding.Instance = instance;
+            return binding;
+        }
+
+        public static ObjectBindingStatement FromNode(this ObjectBindingStatement binding, Node node)
+        {
+            Assert.IsNotNull(node, $"Null node reference on {binding.InterfaceType.Name} binding!");
+            
+            binding.Flags |= BindingFlags.Singleton;
+            binding.Instance = node;
             return binding;
         }
 

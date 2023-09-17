@@ -12,6 +12,11 @@ public class GodotHelpers
         if (condition)
             GD.Print($"[Injact] {message}");
     }
+    public static void WarnIf(bool condition, string message)
+    {
+        if (condition)
+            GD.PushWarning($"[Injact] {message}");
+    }
 
     public static Action ProfileIf(bool condition, string message)
     {

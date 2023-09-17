@@ -51,9 +51,10 @@ namespace Injact
             profile?.Invoke();
         }
 
-        public ObjectBindingStatement Bind<TInterface>()
+        public ObjectBindingStatement Bind<TConcrete>()
         {
-            return BindInternal<TInterface, TInterface>();
+            //TODO: Validate that TConcrete is not an interface
+            return BindInternal<TConcrete, TConcrete>();
         }
 
         public ObjectBindingStatement Bind<TInterface, TConcrete>() where TConcrete : TInterface
