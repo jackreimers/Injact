@@ -96,6 +96,27 @@ public override void InstallBindings()
 }
 ```
 
+### BindFactory\<TFactory, TObject\>
+- `TFactory` must be a class that inherits from `Factory<TObject>`.
+- `TFactory` cannot be an interface.
+- `TObject` is the object the factory will create.
+- See [Factories](#factories) for more information.
+
+### WhenInjectedInto\<T>
+- Used to specify that a binding should only be resolved when injected into a specific class. 
+- If the binding is requested by a type not specified in `WhenInjectedInto` the injection will fail.
+- Can be chained to add multiple classes.
+
+```csharp
+public override void InstallBindings()
+{
+    Container
+        .Bind<IClass, MyClass>()
+        .WhenInjectedInto<MyClass>()
+        .WhenInjectedInto(typeof(MyOtherClass)); 
+}
+```
+
 ### FromInstance
 - Binds an existing instance of an object to the container.
 - Instance bindings must be singletons and calling `FromInstance` will automatically set the binding as a singleton.
@@ -259,6 +280,54 @@ public class MyClass : Node
 }
 ```
 
+### Lazy Injection
+Lazy injection is not currently supported but is a planned feature.
+
 ## Factories
 Factories can be used to create objects at runtime whilst ensuring they get their dependencies injected.  
 If you are creating an object that expects dependencies at runtime, you should always use a factory to create it.
+
+### Creating a Factory
+You can create a factory similarly to creating an installer.
+
+1. Create a class that inherits from `Factory`.
+2. Provide the type of object the factory will create as a generic parameter.
+
+```csharp
+public class MyClass 
+{
+    //Code removed for brevity...
+    
+    Factory : Factory<MyClass> { }
+}
+```
+> **Note**  
+> In this example the factory is created as an inner class of `MyClass`, but it can be created anywhere.  
+> This is just a convenient way to keep the factory and the class it creates together and allows us to access the factory using `MyClass.Factory`.
+
+3. Bind the factory to the container.
+```csharp
+public override void InstallBindings()
+{
+    Container.BindFactory<MyClass.Factory>();
+}
+```
+
+### Using Factories
+Once a factory is bound to the container, you can inject it into any class and use it to create objects.  
+Factories can be resolved using their concrete type or their interface, i.e. `MyClass.Factory` or `IFactory<MyClass>`.
+
+```csharp
+public class MyClass : Node
+{
+    [Inject] private readonly IFactory<MyClass> _factory;
+    
+    public MyClass CreateMyClass()
+    {
+        return _factory.Create();
+    }
+}
+```
+
+### Custom Factories
+If you need to create a factory that does something more complex than just creating an object, you can create a custom factory by implementing `IFactory<T>`.
