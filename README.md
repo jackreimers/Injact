@@ -174,3 +174,87 @@ public override void InstallBindings()
         .Delayed();
 }
 ```
+
+## Injection
+Injact supports constructor, field, property and method injection via the `[Inject]` and `[InjectOptional]` attributes.  
+There are different use cases for each type, but ultimately it is up to you which you use.
+
+### Key Points
+#### Lifecycle
+- Injection occurs on `_EnterTree()`. 
+- You should not attempt to access injected values until or after `_Ready()`.
+
+#### Members
+- Fields, properties and methods **do not** need to be public to be injected into.
+- Properties **do not** need a setter to be injected into.
+- Fields **can** be injected into if they are readonly. 
+
+#### Requirements
+- When using `[Inject]` the type must be bound to the container else an exception will be thrown.
+- When using `[InjectOptional]` the type does not need to be bound to the container, and the injected value will be null if not found.
+
+#### Limitations
+- Constructor injection **is not** supported for Godot nodes.
+- Injection will not occur if an object is created using `new` instead of being created by the container - see [Factories](#factories) for more information.
+
+### Constructor Injection
+> **Warning**  
+> Constructor injection **is not** supported for Godot nodes.
+
+When using constructor injection you do not need to add a `[Inject]` attribute to the constructor, unless you have multiple constructors.  
+By default, Injact will use the constructor with the most parameters.
+
+```csharp
+public class MyClass
+{
+    private readonly IClass _class;
+    
+    public MyClass(IClass class)
+    {
+        _class = class;
+    }
+}
+```
+
+In the above example, provided the required binding is set up, `MyClass` will be injected with an instance of `IClass` when it is created.
+
+### Field Injection
+Decorate a field with `[Inject]` or `[InjectOptional]` to have it injected into.
+
+```csharp
+public class MyClass : Node
+{
+    [Inject] private readonly IClass _class;
+}
+```
+
+### Property Injection
+> **Note**  
+> Properties can be injected into regardless of whether they have a setter.  
+
+Decorate a property with `[Inject]` or `[InjectOptional]` to have it injected into.
+
+```csharp
+public class MyClass : Node
+{
+    [Inject] public IClass Class { get; set; }
+}
+```
+
+### Method Injection
+```csharp
+public class MyClass : Node
+{
+    private IClass _class;
+    
+    [Inject] 
+    public void Inject(IClass injected) 
+    {
+        _class = injected;
+    }
+}
+```
+
+## Factories
+Factories can be used to create objects at runtime whilst ensuring they get their dependencies injected.  
+If you are creating an object that expects dependencies at runtime, you should always use a factory to create it.
