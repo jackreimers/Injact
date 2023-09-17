@@ -38,16 +38,12 @@ public class DiContainer
 
     private void InstallDefaultBindings()
     {
-        var profile = GodotHelpers.ProfileIf(_profilingEnabled, "Container initialised in {0}ms.");
-            
         injector = new Injector(this);
 
         Bind<DiContainer>().FromInstance(this).AsSingleton();
         Bind<Injector>().FromInstance(injector).AsSingleton();
 
         ProcessPendingBindings();
-            
-        profile?.Invoke();
     }
 
     public ObjectBindingStatement Bind<TConcrete>()
