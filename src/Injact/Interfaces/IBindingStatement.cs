@@ -16,9 +16,9 @@ public interface IBindingStatement
 
 public static class IBindingStatementExtensions
 {
-    public static IBindingStatement WhenInjectedInto<T>(this IBindingStatement binding)
+    public static IBindingStatement WhenInjectedInto<TValue>(this IBindingStatement binding)
     {
-        binding.AllowedInjectionTypes.Add(typeof(T));
+        binding.AllowedInjectionTypes.Add(typeof(TValue));
         return binding;
     }
 
