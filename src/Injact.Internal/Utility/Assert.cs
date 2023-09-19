@@ -86,25 +86,18 @@ public static class Assert
 
     public static void IsValidBindingStatement(IBindingStatement bindingStatement)
     {
-        switch (bindingStatement.BindingType)
-        {
-            case BindingType.Object:
-                IsValidObjectBindingStatement(bindingStatement as ObjectBindingStatement);
-                break;
-
-            case BindingType.Factory:
-                IsValidFactoryBindingStatement(bindingStatement as FactoryBindingStatement);
-                break;
-
-            default: throw new ArgumentOutOfRangeException();
-        }
+        if (bindingStatement.BindingFlags.HasFlag(BindingFlags.Factory))
+            IsValidFactoryBindingStatement(bindingStatement as FactoryBindingStatement);
+        
+        else
+            IsValidObjectBindingStatement(bindingStatement as ObjectBindingStatement);
     }
 
     public static void IsValidObjectBindingStatement(ObjectBindingStatement bindingStatement)
     {
         IsNotNull(bindingStatement, "Binding statement cannot be null!");
 
-        if (bindingStatement.Flags.HasFlag(BindingFlags.Singleton) && bindingStatement.Instance == null)
+        if (bindingStatement.BindingFlags.HasFlag(BindingFlags.Singleton) && bindingStatement.Instance == null)
             throw new DependencyException($"{bindingStatement.InterfaceType} is marked as a singleton but has no instance provided!");
     }
 

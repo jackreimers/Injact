@@ -13,8 +13,7 @@ public class ObjectBindingStatement : IBindingStatement
 
     public object Instance { get; set; }
 
-    public BindingType BindingType { get; set; }
-    public BindingFlags Flags { get; set; }
+    public BindingFlags BindingFlags { get; set; }
 }
 
 public static class PendingObjectBindingExtensions
@@ -23,7 +22,7 @@ public static class PendingObjectBindingExtensions
     {
         Assert.IsNotNull(instance, $"Null instance reference on {binding.InterfaceType.Name} binding!");
             
-        binding.Flags |= BindingFlags.Singleton;
+        binding.BindingFlags |= BindingFlags.Singleton;
         binding.Instance = instance;
         return binding;
     }
@@ -32,32 +31,32 @@ public static class PendingObjectBindingExtensions
     {
         Assert.IsNotNull(node, $"Null node reference on {binding.InterfaceType.Name} binding!");
             
-        binding.Flags |= BindingFlags.Singleton;
+        binding.BindingFlags |= BindingFlags.Singleton;
         binding.Instance = node;
         return binding;
     }
 
     public static ObjectBindingStatement AsSingleton(this ObjectBindingStatement binding)
     {
-        binding.Flags |= BindingFlags.Singleton;
+        binding.BindingFlags |= BindingFlags.Singleton;
         return binding;
     }
 
     public static ObjectBindingStatement AsTransient(this ObjectBindingStatement binding)
     {
-        binding.Flags &= ~BindingFlags.Singleton;
+        binding.BindingFlags &= ~BindingFlags.Singleton;
         return binding;
     }
 
     public static ObjectBindingStatement Immediate(this ObjectBindingStatement binding)
     {
-        binding.Flags |= BindingFlags.Immediate;
+        binding.BindingFlags |= BindingFlags.Immediate;
         return binding;
     }
 
     public static ObjectBindingStatement Delayed(this ObjectBindingStatement binding)
     {
-        binding.Flags &= ~BindingFlags.Immediate;
+        binding.BindingFlags &= ~BindingFlags.Immediate;
         return binding;
     }
 }

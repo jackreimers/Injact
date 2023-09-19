@@ -11,8 +11,7 @@ public class FactoryBindingStatement : IBindingStatement
 
     public List<Type> AllowedInjectionTypes { get; } = new();
 
-    public BindingFlags Flags { get; set; }
-    public BindingType BindingType { get; set; }
+    public BindingFlags BindingFlags { get; set; }
 }
 
 public static class FactoryBindingStatementExtensions { }

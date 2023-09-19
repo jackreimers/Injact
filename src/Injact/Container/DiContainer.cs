@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Godot;
 using Injact.Internal;
 
 namespace Injact;
@@ -13,8 +14,8 @@ public class DiContainer
     private readonly Dictionary<Type, object> _instances = new();
 
     private readonly Queue<IBindingStatement> _pendingBindings = new();
-    private readonly bool _loggingEnabled;
-    private readonly bool _profilingEnabled;
+    private readonly LoggingFlags _loggingFlags;
+    private readonly ProfilingFlags _profilingFlags;
 
     private Injector injector;
 
@@ -22,17 +23,17 @@ public class DiContainer
     {
         InstallDefaultBindings();
     }
-        
-    public DiContainer(bool loggingEnabled)
+
+    public DiContainer(LoggingFlags loggingFlags)
     {
-        _loggingEnabled = loggingEnabled;
+        _loggingFlags = loggingFlags;
         InstallDefaultBindings();
     }
-        
-    public DiContainer(bool loggingEnabled, bool profilingEnabled)
+
+    public DiContainer(LoggingFlags loggingFlags, ProfilingFlags profilingFlags)
     {
-        _loggingEnabled = loggingEnabled;
-        _profilingEnabled = profilingEnabled;
+        _loggingFlags = loggingFlags;
+        _profilingFlags = profilingFlags;
         InstallDefaultBindings();
     }
 
@@ -66,7 +67,7 @@ public class DiContainer
         {
             InterfaceType = typeof(TInterface),
             ConcreteType = typeof(TConcrete),
-            BindingType = BindingType.Object
+            BindingFlags = BindingFlags.None
         };
 
         _pendingBindings.Enqueue(bindingInfo);
@@ -88,7 +89,7 @@ public class DiContainer
             InterfaceType = typeof(IFactory<TObject>),
             ConcreteType = typeof(TFactory),
             ObjectType = typeof(TObject),
-            BindingType = BindingType.Factory
+            BindingFlags = BindingFlags.Factory
         };
 
         _pendingBindings.Enqueue(statement);
@@ -104,41 +105,37 @@ public class DiContainer
         {
             var bindingStatement = _pendingBindings.Dequeue();
             var binding = new Binding(bindingStatement.ConcreteType, bindingStatement.AllowedInjectionTypes);
-
-            switch (bindingStatement.BindingType)
+            
+            if (bindingStatement.BindingFlags.HasFlag(BindingFlags.Factory))
             {
-                case BindingType.Object:
-                {
-                    Assert.IsValidBindingStatement(bindingStatement);
-                    _bindings.Add(bindingStatement.InterfaceType, binding);
+                var factoryStatement = bindingStatement as FactoryBindingStatement;
+                Assert.IsValidFactoryBindingStatement(factoryStatement);
 
-                    //There should never be a non singleton binding that has an instance set
-                    if (!bindingStatement.Flags.HasFlag(BindingFlags.Singleton) || bindingStatement is not ObjectBindingStatement concrete)
-                        continue;
-
-                    _instances.Add(
-                        concrete.InterfaceType,
-                        concrete.Instance != null || concrete.Flags.HasFlag(BindingFlags.Immediate)
-                            ? concrete.Instance ?? Create(concrete.ConcreteType, null)
-                            : null
-                    );
-
-                    break;
-                }
-
-                case BindingType.Factory:
-                {
-                    var factoryStatement = bindingStatement as FactoryBindingStatement;
-                    Assert.IsValidFactoryBindingStatement(factoryStatement);
-
-                    _bindings.Add(factoryStatement!.InterfaceType, binding);
-                    _bindings.Add(factoryStatement!.ConcreteType, binding);
-
-                    break;
-                }
-
-                default: throw new ArgumentOutOfRangeException();
+                //Add a binding for the factory interface and the concrete type so it can be injected from either
+                _bindings.Add(factoryStatement!.InterfaceType, binding);
+                _bindings.Add(factoryStatement!.ConcreteType, binding);
             }
+
+            else
+            {
+                var objectStatement = bindingStatement as ObjectBindingStatement;
+                Assert.IsValidObjectBindingStatement(objectStatement);
+                
+                _bindings.Add(bindingStatement.InterfaceType, binding);
+
+                //There should never be a non singleton binding that has an instance set
+                if (!bindingStatement.BindingFlags.HasFlag(BindingFlags.Singleton) || bindingStatement is not ObjectBindingStatement concrete)
+                    continue;
+
+                _instances.Add(
+                    concrete.InterfaceType,
+                    concrete.Instance != null || concrete.BindingFlags.HasFlag(BindingFlags.Immediate)
+                        ? concrete.Instance ?? Create(concrete.ConcreteType, null)
+                        : null
+                );
+            }
+            
+            GD.Print($"Processed binding: {bindingStatement.InterfaceType.Name} -> {bindingStatement.ConcreteType.Name}");
         }
     }
 
