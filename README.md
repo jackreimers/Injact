@@ -10,35 +10,40 @@ Injact is a simple, easy to use dependency injection container for Godot 4 writt
 ## 🛠️ Project Setup
 1. Add a node to your scene and attach the `Context.cs` script to it.
 2. Set your desired settings for your scene context in the inspector.
-3. Create an installer and add it to the context - see [Installers](#installers) for more information.
+3. Create an installer and add it to the context - see [Installers](#-installers) for more information.
 
 ## 🧩 Context
 The context acts as the root of the dependency injection container, it is responsible for creating the container and binding installers to it.  
 There should never be more than one context in a scene.
 
 ### Settings 
-`Inject Into Nodes`  
-- If enabled, Injact will attempt to inject dependencies into all nodes in the scene.  
+`Search For Nodes`  
+- If enabled, Injact will search for all nodes in the scene and attempt to inject into them.  
 - Default: `true`
 
 `Search For Installers`  
-- If enabled, Injact will search for installers in the scene and add them to the context. This saves you having to manually set installers in the inspector, but may be less performant on larger projects.
+- If enabled, Injact will search for installers in the scene and add them to the context.
 - Default: `false`
 
 > **Note**  
-> If you are using `Inject Into Nodes` the performance impact of `Search For Installers` will be near zero. 
+> If you are using `Inject Into Nodes` or `Search For Installers` the container will need to search the entire scene tree which will not be performant on larger projects.  
+> Consider manually setting nodes and installers if you are experiencing performance issues.
+
+`Nodes`  
+- A list of nodes to be injected into at startup.
+- Leave empty if using `Search for Nodes`.
 
 `Installers`  
-- A list of the node installers to be used by the context, see [Installers](#installers) for more information.
+- A list of the node installers to be used by the context, see [Installers](#-installers) for more information.
 - Leave empty if using `Search for Installers`.
   
-`Logging Enabled`
-- If enabled, Injact will log general information to the console.
-- Default: `false`
+`Logging Levels`
+- Used to set the logging level of the container.
+- Default: `none`
   
-`Profiling Enabled`
-- If enabled, Injact will log performance information to the console.
-- Default: `false`
+`Profiling Level`
+- Used to set the profiling level of the container.
+- Default: `none`
 
 ## 🧰 Installers
 There are two types of installers used to bind dependencies to the container.
@@ -116,7 +121,7 @@ Used to bind a factory to the container.
 - `TFactory` must be a class that inherits from `Factory<TObject>` and **cannot** be an interface.
 - `TObject` is the object the factory will create.
 
-See [Factories](#factories) for more information.
+See [Factories](#-factories) for more information.
 
 ### WhenInjectedInto\<TValue>
 Used to control what classes a binding can be resolved by. 
@@ -240,7 +245,7 @@ There are different use cases for each type, but ultimately it is up to you whic
 
 ### Limitations️
 - Constructor injection **is not** supported for Godot nodes.
-- Injection will not occur if an object is created using `new` instead of being created by the container - see [Factories](#factories) for more information.
+- Injection will not occur if an object is created using `new` instead of being created by the container - see [Factories](#-factories) for more information.
 
 ### Constructor Injection
 > **Warning**  

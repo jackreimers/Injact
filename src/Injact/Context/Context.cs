@@ -35,14 +35,14 @@ public partial class Context : Node
 
         _container = new DiContainer(loggingFlags, profilingFlags);
         _injector = _container.Resolve<Injector>(this);
-
-        List<Node> nodes = null!;
-
+        
         if (searchForInstallers)
         {
             var installerProfile = GodotHelpers.ProfileIf(profilingFlags.HasFlag(ProfilingFlags.Startup), "Found {1} installers in {0}ms.");
 
+            GodotHelpers.WarnIf(nodes.Any(), "Search for nodes is enabled, user set nodes will be ignored.");
             GodotHelpers.WarnIf(installers.Any(), "Search for installers is enabled, user set installers will be ignored.");
+            
             nodes = GodotHelpers.GetAllChildNodes(GetTree().Root);
 
             installers = nodes
@@ -64,13 +64,13 @@ public partial class Context : Node
         _container.ProcessPendingBindings();
 
         if (searchForNodes)
-            ResolveAllInScene(nodes);
+            ResolveAllInScene();
 
         profile?.Invoke(null);
         base._EnterTree();
     }
 
-    private void ResolveAllInScene(List<Node> nodes)
+    private void ResolveAllInScene()
     {
         var profile = GodotHelpers.ProfileIf(profilingFlags.HasFlag(ProfilingFlags.Startup), "Found {1} nodes in {0}ms.");
         nodes ??= GodotHelpers.GetAllChildNodes(GetTree().Root);
@@ -78,6 +78,6 @@ public partial class Context : Node
         foreach (var node in nodes)
             _injector.InjectInto(node);
 
-        profile?.Invoke(new object[] { nodes.Count });
+        profile?.Invoke(new object[] { nodes.Length });
     }
 }
