@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Godot;
 using Injact.Internal;
+using Injact.Profiling;
 
 namespace Injact;
 
@@ -12,37 +12,43 @@ public class DiContainer
 {
     private readonly Bindings _bindings = new();
     private readonly Dictionary<Type, object> _instances = new();
-
     private readonly Queue<IBindingStatement> _pendingBindings = new();
-    private readonly LoggingFlags _loggingFlags;
-    private readonly ProfilingFlags _profilingFlags;
 
-    private Injector injector;
+    private Injector _injector;
+    private ILogger _logger;
+    private IProfiler _profiler;
 
     public DiContainer()
     {
-        InstallDefaultBindings();
+        InstallDefaultBindings(LoggingFlags.None, ProfilingFlags.None);
     }
-
-    public DiContainer(LoggingFlags loggingFlags)
-    {
-        _loggingFlags = loggingFlags;
-        InstallDefaultBindings();
-    }
-
+    
     public DiContainer(LoggingFlags loggingFlags, ProfilingFlags profilingFlags)
     {
-        _loggingFlags = loggingFlags;
-        _profilingFlags = profilingFlags;
-        InstallDefaultBindings();
+        InstallDefaultBindings(loggingFlags, profilingFlags);
     }
 
-    private void InstallDefaultBindings()
+    private void InstallDefaultBindings(LoggingFlags loggingFlags, ProfilingFlags profilingFlags)
     {
-        injector = new Injector(this);
+        _injector = new Injector(this);
+        _logger = new Logger(loggingFlags);
+        _profiler = new Profiler(_logger, profilingFlags);
 
-        Bind<DiContainer>().FromInstance(this).AsSingleton();
-        Bind<Injector>().FromInstance(injector).AsSingleton();
+        Bind<DiContainer>()
+            .FromInstance(this)
+            .AsSingleton();
+        
+        Bind<Injector>()
+            .FromInstance(_injector)
+            .AsSingleton();
+        
+        Bind<ILogger, Logger>()
+            .FromInstance(_logger)
+            .AsSingleton();
+        
+        Bind<IProfiler, Profiler>()
+            .FromInstance(_profiler)
+            .AsSingleton();
 
         ProcessPendingBindings();
     }
@@ -108,34 +114,32 @@ public class DiContainer
             
             if (bindingStatement.BindingFlags.HasFlag(BindingFlags.Factory))
             {
-                var factoryStatement = bindingStatement as FactoryBindingStatement;
+                var factoryStatement = (FactoryBindingStatement)bindingStatement;
                 Assert.IsValidFactoryBindingStatement(factoryStatement);
 
                 //Add a binding for the factory interface and the concrete type so it can be injected from either
-                _bindings.Add(factoryStatement!.InterfaceType, binding);
-                _bindings.Add(factoryStatement!.ConcreteType, binding);
+                _bindings.Add(factoryStatement.InterfaceType, binding);
+                _bindings.Add(factoryStatement.ConcreteType, binding);
             }
 
             else
             {
-                var objectStatement = bindingStatement as ObjectBindingStatement;
+                var objectStatement = (ObjectBindingStatement)bindingStatement;
                 Assert.IsValidObjectBindingStatement(objectStatement);
                 
                 _bindings.Add(bindingStatement.InterfaceType, binding);
-
+                
                 //There should never be a non singleton binding that has an instance set
-                if (!bindingStatement.BindingFlags.HasFlag(BindingFlags.Singleton) || bindingStatement is not ObjectBindingStatement concrete)
+                if (!objectStatement.BindingFlags.HasFlag(BindingFlags.Singleton))
                     continue;
 
                 _instances.Add(
-                    concrete.InterfaceType,
-                    concrete.Instance != null || concrete.BindingFlags.HasFlag(BindingFlags.Immediate)
-                        ? concrete.Instance ?? Create(concrete.ConcreteType, null)
+                    objectStatement.InterfaceType,
+                    objectStatement.Instance != null || objectStatement.BindingFlags.HasFlag(BindingFlags.Immediate)
+                        ? objectStatement.Instance ?? Create(objectStatement.ConcreteType, null)
                         : null
                 );
             }
-            
-            GD.Print($"Processed binding: {bindingStatement.InterfaceType.Name} -> {bindingStatement.ConcreteType.Name}");
         }
     }
 
@@ -171,7 +175,7 @@ public class DiContainer
             var hasInstance = instance != null;
 
             instance ??= Create(requestedType, requestingType);
-            injector.InjectInto(instance);
+            _injector.InjectInto(instance);
 
             if (isSingleton && !hasInstance)
                 _instances[requestedType] = instance;
@@ -202,7 +206,7 @@ public class DiContainer
         var parameters = parameterTypes
             .Select(s => Resolve(s.ParameterType, requestingType))
             .ToArray();
-
+        
         return constructor.Invoke(parameters);
     }
 }

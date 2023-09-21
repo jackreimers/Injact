@@ -1,7 +1,7 @@
-using System.Collections.Generic;
 using System.Linq;
 using Godot;
 using Injact.Internal;
+using Injact.Profiling;
 
 namespace Injact;
 
@@ -20,9 +20,12 @@ public partial class Context : Node
     [Export(PropertyHint.Flags, "Information")] private int loggingLevels = 0;
     [Export(PropertyHint.Flags, "Startup,Resolution")] private int profilingLevels = 0;
 
+    [Inject] private readonly ILogger _logger = null!;
+    [Inject] private readonly IProfiler _profiler = null!;
+
     private DiContainer _container;
     private Injector _injector;
-
+    
     private LoggingFlags loggingFlags;
     private ProfilingFlags profilingFlags;
 
@@ -30,18 +33,20 @@ public partial class Context : Node
     {
         loggingFlags = (LoggingFlags)loggingLevels;
         profilingFlags = (ProfilingFlags)profilingLevels;
-        
-        var profile = GodotHelpers.ProfileIf(profilingFlags.HasFlag(ProfilingFlags.Startup), "Initialised dependency injection in {0}ms.");
 
         _container = new DiContainer(loggingFlags, profilingFlags);
-        _injector = _container.Resolve<Injector>(this);
+        _injector = _container.Resolve<Injector>(this);   
+        
+        _injector.InjectInto(this);
+        
+        var profile = _profiler.Start(ProfilingFlags.Startup, "Initialised dependency injection in {0}ms.");
         
         if (searchForInstallers)
         {
-            var installerProfile = GodotHelpers.ProfileIf(profilingFlags.HasFlag(ProfilingFlags.Startup), "Found {1} installers in {0}ms.");
+            var installerProfile = _profiler.Start(ProfilingFlags.Startup, "Found {1} installers in {0}ms.");
 
-            GodotHelpers.WarnIf(nodes.Any(), "Search for nodes is enabled, user set nodes will be ignored.");
-            GodotHelpers.WarnIf(installers.Any(), "Search for installers is enabled, user set installers will be ignored.");
+            _logger.LogWarning("Search for nodes is enabled, user set nodes will be ignored.", nodes.Any());
+            _logger.LogWarning("Search for installers is enabled, user set installers will be ignored.", installers.Any());
             
             nodes = GodotHelpers.GetAllChildNodes(GetTree().Root);
 
@@ -50,9 +55,9 @@ public partial class Context : Node
                 .Cast<NodeInstaller>()
                 .ToArray();
 
-            GodotHelpers.WarnIf(!installers.Any(), "Could not find any node installers in scene.");
+            _logger.LogWarning("Could not find any node installers in scene.", !installers.Any());
 
-            installerProfile?.Invoke(new object[] { installers.Length });
+            installerProfile?.Stop(new object[] { installers.Length });
         }
 
         foreach (var installer in installers)
@@ -66,18 +71,18 @@ public partial class Context : Node
         if (searchForNodes)
             ResolveAllInScene();
 
-        profile?.Invoke(null);
+        profile?.Stop();
         base._EnterTree();
     }
 
     private void ResolveAllInScene()
     {
-        var profile = GodotHelpers.ProfileIf(profilingFlags.HasFlag(ProfilingFlags.Startup), "Found {1} nodes in {0}ms.");
+        var profile = _profiler.Start(ProfilingFlags.Startup, "Found {1} nodes in {0}ms.");
         nodes ??= GodotHelpers.GetAllChildNodes(GetTree().Root);
 
         foreach (var node in nodes)
             _injector.InjectInto(node);
 
-        profile?.Invoke(new object[] { nodes.Length });
+        profile?.Stop(new object[] { nodes.Length });
     }
 }

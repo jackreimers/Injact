@@ -97,8 +97,8 @@ public static class Assert
     {
         IsNotNull(bindingStatement, "Binding statement cannot be null!");
 
-        if (bindingStatement.BindingFlags.HasFlag(BindingFlags.Singleton) && bindingStatement.Instance == null)
-            throw new DependencyException($"{bindingStatement.InterfaceType} is marked as a singleton but has no instance provided!");
+        //if (bindingStatement.BindingFlags.HasFlag(BindingFlags.Singleton) && bindingStatement.Instance == null)
+        //    throw new DependencyException($"{bindingStatement.InterfaceType} is marked as a singleton but has no instance provided!");
     }
 
     public static void IsValidFactoryBindingStatement(FactoryBindingStatement bindingStatement)

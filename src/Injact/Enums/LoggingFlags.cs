@@ -6,7 +6,6 @@ namespace Injact;
 public enum LoggingFlags
 {
     None = 0,
-    Verbose = 1 << 0,
-    Information = 1 << 1,
-    Warning = 1 << 2,
+    Information = 1 << 0,
+    Warning = 1 << 1,
 }
