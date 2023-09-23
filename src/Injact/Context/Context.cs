@@ -7,47 +7,45 @@ namespace Injact;
 
 public partial class Context : Node
 {
-    [ExportCategory("Initialisation")]
+    [ExportCategory("Initialisation")] 
     [Export] private bool searchForNodes = true;
     [Export] private bool searchForInstallers;
-    
-    [ExportCategory("References")]
+
+    [ExportCategory("References")] 
     [Export] private Node[] nodes;
     [Export] private NodeInstaller[] installers;
-    
+
     //TODO: Investigate better way to set flag options for export
-    [ExportCategory("Logging")]
+    [ExportCategory("Logging")] 
     [Export(PropertyHint.Flags, "Information")] private int loggingLevels = 0;
     [Export(PropertyHint.Flags, "Startup,Resolution")] private int profilingLevels = 0;
 
-    [Inject] private readonly ILogger _logger = null!;
-    [Inject] private readonly IProfiler _profiler = null!;
-
     private DiContainer _container;
     private Injector _injector;
-    
-    private LoggingFlags loggingFlags;
-    private ProfilingFlags profilingFlags;
+
+    private ILogger _logger;
+    private IProfiler _profiler;
 
     public override void _EnterTree()
     {
-        loggingFlags = (LoggingFlags)loggingLevels;
-        profilingFlags = (ProfilingFlags)profilingLevels;
+        //Initialising logger and profiler here to avoid DiContainer having a dependency on Godot and to allow container intialisation to be profiled
+        _logger = new GodotLogger((LoggingFlags)loggingLevels);
+        _profiler = new Profiler(_logger, (ProfilingFlags)profilingLevels);
 
-        _container = new DiContainer(loggingFlags, profilingFlags);
-        _injector = _container.Resolve<Injector>(this);   
-        
-        _injector.InjectInto(this);
-        
         var profile = _profiler.Start(ProfilingFlags.Startup, "Initialised dependency injection in {0}ms.");
-        
+
+        _container = new DiContainer(_logger, _profiler);
+        _injector = _container.Resolve<Injector>(this);
+
+        _injector.InjectInto(this);
+
         if (searchForInstallers)
         {
             var installerProfile = _profiler.Start(ProfilingFlags.Startup, "Found {1} installers in {0}ms.");
 
             _logger.LogWarning("Search for nodes is enabled, user set nodes will be ignored.", nodes.Any());
             _logger.LogWarning("Search for installers is enabled, user set installers will be ignored.", installers.Any());
-            
+
             nodes = GodotHelpers.GetAllChildNodes(GetTree().Root);
 
             installers = nodes

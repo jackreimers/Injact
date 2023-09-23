@@ -2,11 +2,11 @@
 
 namespace Injact.Profiling;
 
-public class Logger : ILogger
+public class GodotLogger : ILogger
 {
     private readonly LoggingFlags _loggingFlags;
     
-    public Logger(LoggingFlags loggingFlags)
+    public GodotLogger(LoggingFlags loggingFlags)
     {
         _loggingFlags = loggingFlags;
     }

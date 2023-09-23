@@ -17,22 +17,17 @@ public class DiContainer
     private Injector _injector;
     private ILogger _logger;
     private IProfiler _profiler;
-
-    public DiContainer()
-    {
-        InstallDefaultBindings(LoggingFlags.None, ProfilingFlags.None);
-    }
     
-    public DiContainer(LoggingFlags loggingFlags, ProfilingFlags profilingFlags)
+    public DiContainer(ILogger logger, IProfiler profiler)
     {
-        InstallDefaultBindings(loggingFlags, profilingFlags);
+        InstallDefaultBindings(logger, profiler);
     }
 
-    private void InstallDefaultBindings(LoggingFlags loggingFlags, ProfilingFlags profilingFlags)
+    private void InstallDefaultBindings(ILogger logger, IProfiler profiler)
     {
         _injector = new Injector(this);
-        _logger = new Logger(loggingFlags);
-        _profiler = new Profiler(_logger, profilingFlags);
+        _logger = logger;
+        _profiler = profiler;
 
         Bind<DiContainer>()
             .FromInstance(this)
@@ -42,11 +37,11 @@ public class DiContainer
             .FromInstance(_injector)
             .AsSingleton();
         
-        Bind<ILogger, Logger>()
+        Bind<ILogger>()
             .FromInstance(_logger)
             .AsSingleton();
         
-        Bind<IProfiler, Profiler>()
+        Bind<IProfiler>()
             .FromInstance(_profiler)
             .AsSingleton();
 
