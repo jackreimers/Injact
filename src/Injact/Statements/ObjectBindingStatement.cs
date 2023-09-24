@@ -35,7 +35,7 @@ public static class PendingObjectBindingExtensions
         binding.Instance = node;
         return binding;
     }
-
+    
     public static ObjectBindingStatement AsSingleton(this ObjectBindingStatement binding)
     {
         binding.BindingFlags |= BindingFlags.Singleton;

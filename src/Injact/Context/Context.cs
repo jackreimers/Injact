@@ -7,18 +7,18 @@ namespace Injact;
 
 public partial class Context : Node
 {
-    [ExportCategory("Initialisation")] 
+    [ExportCategory("Initialisation")]
     [Export] private bool searchForNodes = true;
     [Export] private bool searchForInstallers;
 
-    [ExportCategory("References")] 
+    [ExportCategory("References")]
     [Export] private Node[] nodes;
     [Export] private NodeInstaller[] installers;
 
     //TODO: Investigate better way to set flag options for export
-    [ExportCategory("Logging")] 
-    [Export(PropertyHint.Flags, "Information")] private int loggingLevels = 0;
-    [Export(PropertyHint.Flags, "Startup,Resolution")] private int profilingLevels = 0;
+    [ExportCategory("Logging")]
+    [Export(PropertyHint.Flags, "Information")] private int loggingLevels;
+    [Export(PropertyHint.Flags, "Dependency Startup,Dependency Resolution, External")] private int profilingLevels;
 
     private DiContainer _container;
     private Injector _injector;
@@ -28,7 +28,7 @@ public partial class Context : Node
 
     public override void _EnterTree()
     {
-        //Initialising logger and profiler here to avoid DiContainer having a dependency on Godot and to allow container intialisation to be profiled
+        //Initialising logger and profiler here to avoid DiContainer having a dependency on Godot and to allow container initialisation to be profiled
         _logger = new GodotLogger((LoggingFlags)loggingLevels);
         _profiler = new Profiler(_logger, (ProfilingFlags)profilingLevels);
 
