@@ -45,6 +45,27 @@ There should never be more than one context in a scene.
 - Used to set the profiling level of the container.
 - Default: `none`
 
+## 📝 Logging
+Injact comes with an inbuilt logger that can be used anywhere in your project.  
+Simply request `ILogger` from your class to access the logger.
+
+```csharp
+public class MyClass 
+{
+    private readonly ILogger _logger;
+    
+    public MyClass(ILogger logger)
+    {
+        _logger = logger;
+        _logger.LogInformation("This is an info log"!);
+        _logger.LogWarning("This is a warning log"!);
+        _logger.LogError("This is an error log"!);
+        
+    }   
+}
+```
+The output to the Godot console will look like this: `[MyClass] This is an info log!`.
+
 ## 🧰 Installers
 There are two types of installers used to bind dependencies to the container.
 

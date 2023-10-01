@@ -18,7 +18,7 @@ public partial class Context : Node
 
     //TODO: Investigate better way to set flag options for export
     [ExportCategory("Logging")]
-    [Export(PropertyHint.Flags, "Information")] private int loggingLevels;
+    [Export(PropertyHint.Flags, "Information, Warning")] private int loggingLevels;
     [Export(PropertyHint.Flags, "Dependency Startup, Dependency Resolution, External")] private int profilingLevels;
 
     private DiContainer _container;
