@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace Injact.Internal;
+namespace Injact;
 
 public static class Assert
 {

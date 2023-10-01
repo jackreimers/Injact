@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Godot;
 
-namespace Injact.Internal;
+namespace Injact;
 
 public class GodotHelpers
 {

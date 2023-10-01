@@ -1,6 +1,6 @@
 using System;
 
-namespace Injact.Internal;
+namespace Injact;
 
 public class DependencyException : Exception
 {

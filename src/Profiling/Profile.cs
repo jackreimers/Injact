@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Linq;
 
-namespace Injact.Profiling;
+namespace Injact;
 
 public class Profile
 {

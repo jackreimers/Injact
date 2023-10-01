@@ -1,7 +1,5 @@
 using System.Linq;
 using Godot;
-using Injact.Internal;
-using Injact.Profiling;
 
 namespace Injact;
 

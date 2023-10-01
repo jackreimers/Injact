@@ -1,6 +1,6 @@
 ﻿using Godot;
 
-namespace Injact.Profiling;
+namespace Injact;
 
 public class Logger<T> : ILogger
 {

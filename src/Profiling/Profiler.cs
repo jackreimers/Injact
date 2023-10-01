@@ -1,4 +1,4 @@
-﻿namespace Injact.Profiling;
+﻿namespace Injact;
 
 public class Profiler : IProfiler
 {
