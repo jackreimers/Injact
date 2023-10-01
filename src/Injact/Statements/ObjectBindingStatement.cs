@@ -18,6 +18,18 @@ public class ObjectBindingStatement : IBindingStatement
 
 public static class PendingObjectBindingExtensions
 {
+    public static ObjectBindingStatement WhenInjectedInto<TValue>(this ObjectBindingStatement binding)
+    {
+        binding.AllowedInjectionTypes.Add(typeof(TValue));
+        return binding;
+    }
+
+    public static ObjectBindingStatement WhenInjectedInto(this ObjectBindingStatement binding, Type allowedType)
+    {
+        binding.AllowedInjectionTypes.Add(allowedType);
+        return binding;
+    }
+    
     public static ObjectBindingStatement FromInstance(this ObjectBindingStatement binding, object instance)
     {
         Assert.IsNotNull(instance, $"Null instance reference on {binding.InterfaceType.Name} binding!");

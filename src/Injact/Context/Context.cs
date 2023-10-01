@@ -7,6 +7,9 @@ namespace Injact;
 
 public partial class Context : Node
 {
+    [Inject] private readonly ILogger _logger = null!;
+    [Inject] private readonly IProfiler _profiler = null!;
+    
     [ExportCategory("Initialisation")]
     [Export] private bool searchForNodes = true;
     [Export] private bool searchForInstallers;
@@ -18,26 +21,22 @@ public partial class Context : Node
     //TODO: Investigate better way to set flag options for export
     [ExportCategory("Logging")]
     [Export(PropertyHint.Flags, "Information")] private int loggingLevels;
-    [Export(PropertyHint.Flags, "Dependency Startup,Dependency Resolution, External")] private int profilingLevels;
+    [Export(PropertyHint.Flags, "Dependency Startup, Dependency Resolution, External")] private int profilingLevels;
 
     private DiContainer _container;
     private Injector _injector;
 
-    private ILogger _logger;
-    private IProfiler _profiler;
-
     public override void _EnterTree()
     {
-        //Initialising logger and profiler here to avoid DiContainer having a dependency on Godot and to allow container initialisation to be profiled
-        _logger = new GodotLogger((LoggingFlags)loggingLevels);
-        _profiler = new Profiler(_logger, (ProfilingFlags)profilingLevels);
-
-        var profile = _profiler.Start(ProfilingFlags.Startup, "Initialised dependency injection in {0}ms.");
-
-        _container = new DiContainer(_logger, _profiler);
+        var loggingFlags = (LoggingFlags)loggingLevels;
+        var profilingFlags = (ProfilingFlags)profilingLevels;
+        
+        _container = new DiContainer(loggingFlags, profilingFlags);
         _injector = _container.Resolve<Injector>(this);
 
         _injector.InjectInto(this);
+        
+        var profile = _profiler.Start(ProfilingFlags.Startup, "Initialised dependency injection in {0}ms.");
 
         if (searchForInstallers)
         {

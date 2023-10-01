@@ -13,32 +13,35 @@ public class DiContainer
     private readonly Bindings _bindings = new();
     private readonly Dictionary<Type, object> _instances = new();
     private readonly Queue<IBindingStatement> _pendingBindings = new();
+    
+    private readonly LoggingFlags _loggingFlags;
+    private readonly ProfilingFlags _profilingFlags;
 
     private Injector _injector;
     private ILogger _logger;
     private IProfiler _profiler;
     
-    public DiContainer(ILogger logger, IProfiler profiler)
+    public DiContainer(LoggingFlags loggingFlags, ProfilingFlags profilingFlags)
     {
-        InstallDefaultBindings(logger, profiler);
+        _loggingFlags = loggingFlags;
+        _profilingFlags = profilingFlags;
+        
+        InstallDefaultBindings();
     }
 
-    private void InstallDefaultBindings(ILogger logger, IProfiler profiler)
+    private void InstallDefaultBindings()
     {
         _injector = new Injector(this);
-        _logger = logger;
-        _profiler = profiler;
+        _logger = new Logger<DiContainer>(_loggingFlags);
+        _profiler = new Profiler(_logger, _profilingFlags);
 
         Bind<DiContainer>()
             .FromInstance(this)
             .AsSingleton();
-        
+
         Bind<Injector>()
             .FromInstance(_injector)
-            .AsSingleton();
-        
-        Bind<ILogger>()
-            .FromInstance(_logger)
+            .WhenInjectedInto<Context>()
             .AsSingleton();
         
         Bind<IProfiler>()
@@ -131,7 +134,7 @@ public class DiContainer
                 _instances.Add(
                     objectStatement.InterfaceType,
                     objectStatement.Instance != null || objectStatement.BindingFlags.HasFlag(BindingFlags.Immediate)
-                        ? objectStatement.Instance ?? Create(objectStatement.ConcreteType, null)
+                        ? objectStatement.Instance ?? Create(objectStatement.ConcreteType, objectStatement.ConcreteType)
                         : null
                 );
             }
@@ -163,9 +166,13 @@ public class DiContainer
         try
         {
             Assert.IsNotNull(requestedType, "Requested type cannot be null!");
+
+            if (requestedType.IsAssignableFrom(typeof(ILogger)))
+                return ResolveLogger<TInterface>(requestingType);
+            
             Assert.IsExistingBinding(_bindings, requestedType);
             Assert.IsLegalInjection(_bindings, requestedType, requestingType);
-
+            
             var isSingleton = _instances.TryGetValue(requestedType, out var instance);
             var hasInstance = instance != null;
 
@@ -185,6 +192,26 @@ public class DiContainer
 
             return default;
         }
+    }
+
+    private TInterface ResolveLogger<TInterface>(Type requestingType)
+    {
+        Assert.IsNotNull(requestingType, "Requesting type cannot be null when resolving logger!");
+        
+        var generic = typeof(Logger<>);
+        var constructed = generic.MakeGenericType(requestingType);
+        var constructor = constructed.GetConstructor(new[] { typeof(LoggingFlags) });
+
+        var hasInstance = _instances.TryGetValue(constructed, out var instance);
+        if (hasInstance)
+            return (TInterface)instance;
+        
+        instance = constructor?.Invoke(new object[] { _loggingFlags });
+        Assert.IsNotNull(instance, "Failed to create logger instance!");
+        
+        _instances.Add(constructed, instance);
+                
+        return (TInterface)instance;
     }
 
     private object Create(Type requestedType, Type requestingType)
