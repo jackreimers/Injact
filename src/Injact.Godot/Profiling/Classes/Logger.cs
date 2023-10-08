@@ -8,7 +8,7 @@ namespace Injact.Godot.Profiling;
 public class Logger<T> : ILogger
 {
     private readonly string _typeName;
-    
+
     public Logger()
     {
         var typeName = typeof(T).Name;

@@ -9,4 +9,6 @@ public interface IPhysicalProvider : ILifecycleProvider
     public void TranslateLocal(Vector3 translation);
     
     public void Rotate(Vector3 rotation);
+    
+    public void Rotate(float x, float y, float z);
 }
