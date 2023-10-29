@@ -22,12 +22,12 @@ public class Profile
     public void Stop()
     {
         _stopwatch.Stop();
-        _logger.LogTrace(_message, new object[] { _stopwatch.ElapsedMilliseconds });
+        _logger.LogTrace(_message, new object[] { _stopwatch.ElapsedMilliseconds + "ms" });
     }
 
     public void Stop(object[] args)
     {
         _stopwatch.Stop();
-        _logger.LogTrace(_message, new object[] { _stopwatch.ElapsedMilliseconds }.Concat(args).ToArray());
+        _logger.LogTrace(_message, new object[] { _stopwatch.ElapsedMilliseconds + "ms" }.Concat(args).ToArray());
     }
 }

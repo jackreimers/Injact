@@ -16,7 +16,7 @@ public class Injector
 
     public void InjectInto(object target)
     {
-        Assert.IsNotNull(target, "Cannot inject into null target!");
+        Guard.Against.Null(target, "Cannot inject into null target!");
 
         InjectIntoFields(target);
         InjectIntoProperties(target);
@@ -43,7 +43,7 @@ public class Injector
     {
         var properties = requestingObject
             .GetType()
-            .GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            .GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
         var requiredProperties = properties.Where(s => s.GetCustomAttributes(typeof(InjectAttribute), true).Length > 0);
         var optionalProperties = properties.Where(s => s.GetCustomAttributes(typeof(InjectOptionalAttribute), true).Length > 0);
@@ -62,7 +62,7 @@ public class Injector
         var propertyType = property.PropertyType;
         var backingField = ReflectionHelpers.GetBackingField(requestingType, property.Name);
 
-        Assert.IsNotNull(backingField, $"{nameof(InjectIntoProperties)} failed to find backing field for {property.Name} on {requestingType}!");
+        Guard.Against.Null(backingField, $"{nameof(InjectIntoProperties)} failed to find backing field for {property.Name} on {requestingType}!");
 
         backingField?.SetValue(requestingObject, _container.Resolve(propertyType, requestingType, throwOnNotFound));
     }
@@ -71,7 +71,7 @@ public class Injector
     {
         var methods = requestingObject
             .GetType()
-            .GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
         var requiredMethods = methods.Where(s => s.GetCustomAttributes(typeof(InjectAttribute), true).Length > 0);
         var optionalMethods = methods.Where(s => s.GetCustomAttributes(typeof(InjectOptionalAttribute), true).Length > 0);

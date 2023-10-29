@@ -20,7 +20,7 @@ public abstract partial class NodeWrapper<T> : Node, ILifecycleProvider where T 
     {
         Value = new T();
 
-        Assert.IsNotNull(Value, $"Failed to initialise wrapped class on {this}!");
+        Guard.Against.Null(Value, $"Failed to initialise wrapped class on {this}!");
 
         _injector.InjectInto(Value);
 

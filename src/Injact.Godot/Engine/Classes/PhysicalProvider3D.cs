@@ -14,7 +14,7 @@ public class PhysicalProvider3D : IPhysicalProvider
     
     public PhysicalProvider3D(Node3D node)
     {
-        Assert.IsNotNull(node, $"Node cannot be null on {this}!");
+        Guard.Against.Null(node, $"Node cannot be null on {this}!");
         _node = node;
     }
 

@@ -15,7 +15,6 @@ public class DiContainer
     private readonly Dictionary<Type, object> _instances = new();
     private readonly Queue<IBindingStatement> _pendingBindings = new();
     
-    private readonly ILogger _logger;
     private readonly IProfiler _profiler;
     private readonly Type _loggerType;
     
@@ -23,7 +22,6 @@ public class DiContainer
     
     public DiContainer(ILogger logger, IProfiler profiler)
     {
-        _logger = logger;
         _profiler = profiler;
         _loggerType = logger.GetType().GetGenericTypeDefinition();
 
@@ -64,8 +62,8 @@ public class DiContainer
 
     private ObjectBindingStatement BindInternal<TInterface, TConcrete>()
     {
-        Assert.IsAssignable<TInterface, TConcrete>();
-        Assert.IsNotExistingBinding(_bindings, typeof(TInterface));
+        Guard.Against.Unassignable<TInterface, TConcrete>();
+        Guard.Against.ExistingBinding(_bindings, typeof(TInterface));
 
         var bindingInfo = new ObjectBindingStatement
         {
@@ -85,8 +83,8 @@ public class DiContainer
 
     private FactoryBindingStatement BindFactoryInternal<TFactory, TObject>()
     {
-        Assert.IsNotExistingBinding(_bindings, typeof(TFactory));
-        Assert.IsNotExistingBinding(_bindings, typeof(IFactory<TObject>));
+        Guard.Against.ExistingBinding(_bindings, typeof(TFactory));
+        Guard.Against.ExistingBinding(_bindings, typeof(IFactory<TObject>));
 
         var statement = new FactoryBindingStatement
         {
@@ -113,7 +111,7 @@ public class DiContainer
             if (bindingStatement.Flags.HasFlag(StatementFlags.Factory))
             {
                 var factoryStatement = (FactoryBindingStatement)bindingStatement;
-                Assert.IsValidFactoryBindingStatement(factoryStatement);
+                Guard.Against.InvalidFactoryBindingStatement(factoryStatement);
 
                 //Add a binding for the factory interface and the concrete type so it can be injected from either
                 _bindings.Add(factoryStatement.InterfaceType, binding);
@@ -123,7 +121,7 @@ public class DiContainer
             else
             {
                 var objectStatement = (ObjectBindingStatement)bindingStatement;
-                Assert.IsValidObjectBindingStatement(objectStatement);
+                Guard.Against.InvalidObjectBindingStatement(objectStatement);
                 
                 _bindings.Add(bindingStatement.InterfaceType, binding);
                 
@@ -165,13 +163,13 @@ public class DiContainer
     {
         try
         {
-            Assert.IsNotNull(requestedType, "Requested type cannot be null!");
+            Guard.Against.Null(requestedType, "Requested type cannot be null!");
 
             if (requestedType.IsAssignableFrom(typeof(ILogger)))
                 return ResolveLogger<TInterface>(requestingType);
             
-            Assert.IsExistingBinding(_bindings, requestedType);
-            Assert.IsLegalInjection(_bindings, requestedType, requestingType);
+            Guard.Against.MissingBinding(_bindings, requestedType);
+            Guard.Against.IllegalInjection(_bindings, requestedType, requestingType);
             
             var isSingleton = _instances.TryGetValue(requestedType, out var instance);
             var hasInstance = instance != null;
@@ -196,10 +194,9 @@ public class DiContainer
 
     private TInterface ResolveLogger<TInterface>(Type requestingType)
     {
-        Assert.IsNotNull(requestingType, "Requesting type cannot be null when resolving logger!");
+        Guard.Against.Null(requestingType, "Requesting type cannot be null when resolving logger!");
 
-        var generic = _loggerType;
-        var constructed = generic.MakeGenericType(requestingType);
+        var constructed = _loggerType.MakeGenericType(requestingType);
         var constructor = constructed.GetConstructors().FirstOrDefault();
 
         var hasInstance = _instances.TryGetValue(constructed, out var instance);
@@ -207,7 +204,7 @@ public class DiContainer
             return (TInterface)instance;
         
         instance = constructor?.Invoke(null);
-        Assert.IsNotNull(instance, "Failed to create logger instance!");
+        Guard.Against.Null(instance, "Failed to create logger instance!");
         
         _instances.Add(constructed, instance);
                 
@@ -216,14 +213,14 @@ public class DiContainer
 
     private object Create(Type requestedType, Type requestingType)
     {
-        Assert.IsNotNull(requestedType, $"Requested type cannot be null when calling {nameof(Create)}!");
-        Assert.IsExistingBinding(_bindings, requestedType);
+        Guard.Against.Null(requestedType, $"Requested type cannot be null when calling {nameof(Create)}!");
+        Guard.Against.MissingBinding(_bindings, requestedType);
 
         var binding = _bindings[requestedType];
         var constructor = ReflectionHelpers.GetConstructor(binding.ConcreteType);
         var parameterTypes = constructor.GetParameters();
 
-        Assert.IsNotCircular(_bindings, binding, parameterTypes);
+        Guard.Against.CircularDependency(_bindings, binding, parameterTypes);
 
         var parameters = parameterTypes
             .Select(s => Resolve(s.ParameterType, requestingType))

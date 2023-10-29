@@ -33,7 +33,7 @@ internal static class ReflectionHelpers
 
     public static FieldInfo[] GetAllFields(Type type)
     {
-        Assert.IsNotNull(type, "Cannot get fields from null type!");
+        Guard.Against.Null(type, "Cannot get fields from null type!");
         var fields = new List<FieldInfo>();
 
         while (type != null)
@@ -49,8 +49,8 @@ internal static class ReflectionHelpers
 
     public static FieldInfo GetBackingField(Type type, string parameterName)
     {
-        Assert.IsNotNull(type, "Cannot get field from null type!");
-        Assert.IsNotNullOrWhitespace(parameterName, "Cannot get backing field from null or empty parameter name!");
+        Guard.Against.Null(type, "Cannot get field from null type!");
+        Guard.Against.NullOrWhitespace(parameterName, "Cannot get backing field from null or empty parameter name!");
 
         while (type != null)
         {
