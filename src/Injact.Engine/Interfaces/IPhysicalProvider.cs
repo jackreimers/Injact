@@ -2,13 +2,15 @@
 
 namespace Injact.Engine;
 
-public interface IPhysicalProvider : ILifecycleProvider
+public interface IPhysicalProvider
 {
-    public void Translate(Vector3 translation);
+    public Vector3 Position { get; }
     
-    public void TranslateLocal(Vector3 translation);
+    public void Translate(System.Numerics.Vector3 translation);
     
-    public void Rotate(Vector3 rotation);
+    public void TranslateLocal(System.Numerics.Vector3 translation);
+    
+    public void Rotate(System.Numerics.Vector3 rotation);
     
     public void Rotate(float x, float y, float z);
 }

@@ -16,7 +16,7 @@ public class Injector
 
     public void InjectInto(object target)
     {
-        Assert.IsNotNull(target, "Cannot inject into null target!");
+        Guard.Against.Null(target, "Cannot inject into null target!");
 
         InjectIntoFields(target);
         InjectIntoProperties(target);
@@ -62,7 +62,7 @@ public class Injector
         var propertyType = property.PropertyType;
         var backingField = ReflectionHelpers.GetBackingField(requestingType, property.Name);
 
-        Assert.IsNotNull(backingField, $"{nameof(InjectIntoProperties)} failed to find backing field for {property.Name} on {requestingType}!");
+        Guard.Against.Null(backingField, $"{nameof(InjectIntoProperties)} failed to find backing field for {property.Name} on {requestingType}!");
 
         backingField?.SetValue(requestingObject, _container.Resolve(propertyType, requestingType, throwOnNotFound));
     }

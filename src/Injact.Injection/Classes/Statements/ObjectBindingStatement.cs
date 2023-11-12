@@ -31,7 +31,7 @@ public static class PendingObjectBindingExtensions
     
     public static ObjectBindingStatement FromInstance(this ObjectBindingStatement binding, object instance)
     {
-        Assert.IsNotNull(instance, $"Null instance reference on {binding.InterfaceType.Name} binding!");
+        Guard.Against.Null(instance, $"Null instance reference on {binding.InterfaceType.Name} binding!");
             
         binding.Flags |= StatementFlags.Singleton;
         binding.Instance = instance;
@@ -40,7 +40,7 @@ public static class PendingObjectBindingExtensions
 
     public static ObjectBindingStatement FromNode(this ObjectBindingStatement binding, Node node)
     {
-        Assert.IsNotNull(node, $"Null node reference on {binding.InterfaceType.Name} binding!");
+        Guard.Against.Null(node, $"Null node reference on {binding.InterfaceType.Name} binding!");
             
         binding.Flags |= StatementFlags.Singleton;
         binding.Instance = node;
