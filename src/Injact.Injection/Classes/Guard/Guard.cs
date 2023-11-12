@@ -15,6 +15,12 @@ public class Guard
             if (obj == null)
                 throw new NullReferenceException(message);
         }
+        
+        public static void NotNull(object obj, string message)
+        {
+            if (obj != null)
+                throw new ArgumentException(message);
+        }
 
         public static void NullOrWhitespace(string value, string message)
         {

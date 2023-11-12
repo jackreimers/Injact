@@ -14,7 +14,7 @@ public abstract partial class NodeWrapper3D<T> : Node3D where T : class, IPhysic
     
     public T Value { get; set; } = null!;
 
-    public event Action<double> Update;
+    public event Action<double> OnUpdate;
 
     public override void _EnterTree()
     {
@@ -25,7 +25,7 @@ public abstract partial class NodeWrapper3D<T> : Node3D where T : class, IPhysic
         _injector.InjectInto(Value);
 
         if (typeof(T).GetMethod("Update")?.DeclaringType == typeof(T))
-            Update += Value.Update;
+            OnUpdate += Value.Update;
 
         _editorValueMapper.Map(this, Value);
 
@@ -42,7 +42,7 @@ public abstract partial class NodeWrapper3D<T> : Node3D where T : class, IPhysic
 
     public override void _Process(double delta)
     {
-        Update?.Invoke(delta);
+        OnUpdate?.Invoke(delta);
         base._Process(delta);
     }
 }
