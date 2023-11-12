@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using Godot;
 using Injact.Godot.Profiling;
 using Injact.Godot.Utility;
@@ -17,12 +18,14 @@ public partial class Context : Node
     [Export] private Node[] injectTargets;
     [Export] private NodeInstaller[] installers;
 
+    private readonly List<IInstaller> _installers = new();
+
     private DiContainer _container;
     private Injector _injector;
 
     private ILogger _logger;
     private IProfiler _profiler;
-
+    
     private Node[] nodeBuffer;
 
     public override void _EnterTree()
@@ -35,11 +38,15 @@ public partial class Context : Node
 
         _injector.InjectInto(this);
 
-        TryResolveAllInScene();
         TrySearchForInstallers();
+        TryResolveAllInScene();
+        
+        _installers.AddRange(installers);
 
-        foreach (var installer in installers)
+        foreach (var installer in _installers)
         {
+            _logger.LogInformation($"Installing bindings for {installer.GetType().Name}.");
+            
             _injector.InjectInto(installer);
             installer.InstallBindings();
         }
@@ -48,6 +55,11 @@ public partial class Context : Node
 
         foreach (var target in injectTargets)
             _injector.InjectInto(target);
+    }
+    
+    protected void AddInstallers(params IInstaller[] value)
+    {
+        _installers.AddRange(value);
     }
 
     private void TrySearchForInstallers()

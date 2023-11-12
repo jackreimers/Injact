@@ -14,6 +14,7 @@ public class DiContainer
     private readonly Bindings _bindings = new();
     private readonly Dictionary<Type, object> _instances = new();
     private readonly Queue<IBindingStatement> _pendingBindings = new();
+    private readonly Queue<ObjectBindingStatement> _pendingInstances = new();
     
     private readonly IProfiler _profiler;
     private readonly Type _loggerType;
@@ -129,13 +130,28 @@ public class DiContainer
                 if (!objectStatement.Flags.HasFlag(StatementFlags.Singleton))
                     continue;
 
+                if (objectStatement.Flags.HasFlag(StatementFlags.Immediate) && objectStatement.Instance == null)
+                {
+                    _pendingInstances.Enqueue(objectStatement);                        
+                    continue;
+                }
+                
                 _instances.Add(
                     objectStatement.InterfaceType,
-                    objectStatement.Instance != null || objectStatement.Flags.HasFlag(StatementFlags.Immediate)
-                        ? objectStatement.Instance ?? Create(objectStatement.ConcreteType, objectStatement.ConcreteType)
-                        : null
+                    objectStatement.Instance
                 );
             }
+        }
+        
+        //Perform creation after all bindings have been processed to prevent immediate bindings from requesting unbound dependencies
+        while (_pendingInstances.Count > 0)
+        {
+            var statement = _pendingInstances.Dequeue();
+            
+            _instances.Add(
+                statement.InterfaceType,
+                Create(statement.ConcreteType, statement.ConcreteType)
+            );
         }
     }
 
