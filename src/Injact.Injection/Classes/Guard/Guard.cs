@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using Injact.Utility;
 
 namespace Injact.Injection;
@@ -64,8 +62,10 @@ public class Guard
                 throw new DependencyException($"Binding of type {type} already exists!");
         }
 
-        public static void CircularDependency(Bindings bindings, Binding binding, IEnumerable<ParameterInfo> rootParameters)
+        public static void CircularDependency(Bindings bindings, Type requestedType)
         {
+            var rootParameters = ReflectionHelpers.GetParameters(requestedType);
+            
             foreach (var parameter in rootParameters)
             {
                 var isRelevant = bindings.TryGetValue(parameter.ParameterType, out var parameterBinding);
@@ -73,7 +73,7 @@ public class Guard
                     continue;
 
                 var parameters = ReflectionHelpers.GetParameters(parameterBinding.ConcreteType);
-                if (parameters.Any(s => s.ParameterType == binding.ConcreteType))
+                if (parameters.Any(s => s.ParameterType == requestedType))
                     throw new DependencyException($"Requested type of {parameter.ParameterType} contains a circular dependency!");
             }
         }

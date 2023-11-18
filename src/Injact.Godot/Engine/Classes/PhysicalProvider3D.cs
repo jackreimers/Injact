@@ -8,8 +8,6 @@ namespace Injact.Godot.Engine;
 
 public class PhysicalProvider3D : IPhysicalProvider
 {
-    [Inject] private readonly ILogger _logger = null!;
-    
     private readonly Node3D _node;
     
     public PhysicalProvider3D(Node3D node)

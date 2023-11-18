@@ -2,10 +2,15 @@
 
 public class Factory<TValue> : IFactory<TValue>
 {
-    [Inject] private readonly DiContainer _container = null!;
+    private readonly DiContainer _container;
+    
+    public Factory(DiContainer container)
+    {
+        _container = container;
+    }
 
     public virtual TValue Create()
     {
-        return _container.Resolve<TValue>(null);
+        return (TValue)_container.Create(typeof(TValue));
     }
 }

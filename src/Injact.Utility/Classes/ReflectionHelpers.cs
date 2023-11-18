@@ -10,11 +10,13 @@ internal static class ReflectionHelpers
 {
     public static ConstructorInfo GetConstructor(Type type)
     {
+        //TODO: Should the constructor with the largest number of parameters be used instead?
         var constructors = type.GetConstructors();
         var defaultConstructor = constructors[0];
 
         foreach (var constructor in constructors)
         {
+            //Preference is given to the constructor with the Inject attribute
             if (!constructor.GetCustomAttributes(typeof(InjectAttribute), true).Any())
                 continue;
 

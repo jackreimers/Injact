@@ -15,12 +15,12 @@ public class DiContainer
     private readonly Dictionary<Type, object> _instances = new();
     private readonly Queue<IBindingStatement> _pendingBindings = new();
     private readonly Queue<ObjectBindingStatement> _pendingInstances = new();
-    
+
     private readonly IProfiler _profiler;
     private readonly Type _loggerType;
-    
+
     private Injector _injector;
-    
+
     public DiContainer(ILogger logger, IProfiler profiler)
     {
         _profiler = profiler;
@@ -43,7 +43,7 @@ public class DiContainer
 
         Bind<EditorValueMapper>()
             .AsSingleton();
-        
+
         Bind<IProfiler>()
             .FromInstance(_profiler)
             .AsSingleton();
@@ -108,7 +108,7 @@ public class DiContainer
         {
             var bindingStatement = _pendingBindings.Dequeue();
             var binding = new Binding(bindingStatement.ConcreteType, bindingStatement.AllowedInjectionTypes);
-            
+
             if (bindingStatement.Flags.HasFlag(StatementFlags.Factory))
             {
                 var factoryStatement = (FactoryBindingStatement)bindingStatement;
@@ -123,34 +123,34 @@ public class DiContainer
             {
                 var objectStatement = (ObjectBindingStatement)bindingStatement;
                 Guard.Against.InvalidObjectBindingStatement(objectStatement);
-                
+
                 _bindings.Add(bindingStatement.InterfaceType, binding);
-                
+
                 //There should never be a non singleton binding that has an instance set
                 if (!objectStatement.Flags.HasFlag(StatementFlags.Singleton))
                     continue;
 
                 if (objectStatement.Flags.HasFlag(StatementFlags.Immediate) && objectStatement.Instance == null)
                 {
-                    _pendingInstances.Enqueue(objectStatement);                        
+                    _pendingInstances.Enqueue(objectStatement);
                     continue;
                 }
-                
+
                 _instances.Add(
                     objectStatement.InterfaceType,
                     objectStatement.Instance
                 );
             }
         }
-        
+
         //Perform creation after all bindings have been processed to prevent immediate bindings from requesting unbound dependencies
         while (_pendingInstances.Count > 0)
         {
             var statement = _pendingInstances.Dequeue();
-            
+
             _instances.Add(
                 statement.InterfaceType,
-                Create(statement.ConcreteType, statement.ConcreteType)
+                Create(statement.ConcreteType)
             );
         }
     }
@@ -183,15 +183,21 @@ public class DiContainer
 
             if (requestedType.IsAssignableFrom(typeof(ILogger)))
                 return ResolveLogger<TInterface>(requestingType);
-            
+
             Guard.Against.MissingBinding(_bindings, requestedType);
             Guard.Against.IllegalInjection(_bindings, requestedType, requestingType);
             
             var isSingleton = _instances.TryGetValue(requestedType, out var instance);
             var hasInstance = instance != null;
 
-            instance ??= Create(requestedType, requestingType);
-            _injector.InjectInto(instance);
+            if (instance == null)
+            {
+                //TODO: Assumes that if the object is already created it cannot have circular dependencies, confirm this
+                Guard.Against.CircularDependency(_bindings, requestingType);
+                
+                var binding = _bindings[requestedType];
+                instance = Create(binding.ConcreteType);
+            }
 
             if (isSingleton && !hasInstance)
                 _instances[requestedType] = instance;
@@ -218,30 +224,28 @@ public class DiContainer
         var hasInstance = _instances.TryGetValue(constructed, out var instance);
         if (hasInstance)
             return (TInterface)instance;
-        
+
         instance = constructor?.Invoke(null);
         Guard.Against.Null(instance, "Failed to create logger instance!");
-        
+
         _instances.Add(constructed, instance);
-                
+
         return (TInterface)instance;
     }
 
-    private object Create(Type requestedType, Type requestingType)
+    public object Create(Type requestedType)
     {
         Guard.Against.Null(requestedType, $"Requested type cannot be null when calling {nameof(Create)}!");
-        Guard.Against.MissingBinding(_bindings, requestedType);
+        //TODO: I'm not sure if circular dependencies will be an issue when creating an unbound object, test and confirm
+        //Guard.Against.CircularDependency(_bindings, requestedType);
 
-        var binding = _bindings[requestedType];
-        var constructor = ReflectionHelpers.GetConstructor(binding.ConcreteType);
+        var constructor = ReflectionHelpers.GetConstructor(requestedType);
         var parameterTypes = constructor.GetParameters();
-
-        Guard.Against.CircularDependency(_bindings, binding, parameterTypes);
-
-        var parameters = parameterTypes
-            .Select(s => Resolve(s.ParameterType, requestingType))
-            .ToArray();
         
+        var parameters = parameterTypes
+            .Select(s => Resolve(s.ParameterType, requestedType))
+            .ToArray();
+
         return constructor.Invoke(parameters);
     }
 }
