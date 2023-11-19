@@ -2,7 +2,6 @@
 using Injact.Engine;
 using Injact.Godot.Utility;
 using Injact.Injection;
-using Injact.Profiling;
 
 namespace Injact.Godot.Engine;
 

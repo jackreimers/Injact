@@ -13,4 +13,9 @@ public class Profiler : IProfiler
     {
         return new Profile(_logger, message);
     }
+
+    public Profile Start(string message, bool condition)
+    {
+        return new Profile(_logger, message, condition);
+    }
 }

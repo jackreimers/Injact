@@ -8,6 +8,12 @@ public class Guard
 {
     public class Against
     {
+        public static void Condition(bool condition, string message)
+        {
+            if (condition)
+                throw new NotSupportedException(message);
+        }
+        
         public static void Null(object obj, string message)
         {
             if (obj == null)

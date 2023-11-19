@@ -14,13 +14,16 @@ public class Injector
         _container = container;
     }
 
-    public void InjectInto(object target)
+    public void InjectInto(params object[] targets)
     {
-        Guard.Against.Null(target, "Cannot inject into null target!");
+        foreach (var target in targets)
+        {
+            Guard.Against.Null(target, "Cannot inject into null target!");
 
-        InjectIntoFields(target);
-        InjectIntoProperties(target);
-        InjectIntoMethods(target);
+            InjectIntoFields(target);
+            InjectIntoProperties(target);
+            InjectIntoMethods(target);
+        }
     }
 
     private void InjectIntoFields(object requestingObject)

@@ -5,7 +5,6 @@ using Injact.Engine;
 using Injact.Godot.Profiling;
 using Injact.Profiling;
 using Injact.Utility;
-using Strategy.Plugins.Injact.src.Injact.Injection.Classes.Configuration;
 
 namespace Injact.Injection;
 
@@ -16,7 +15,6 @@ public class DiContainer
     private readonly Bindings _bindings = new();
     private readonly Dictionary<Type, object> _instances = new();
     private readonly Queue<IBindingStatement> _pendingBindings = new();
-    private readonly Queue<ObjectBindingStatement> _pendingInstances = new();
 
     private readonly ILogger _logger;
     private readonly IProfiler _profiler;
@@ -28,6 +26,7 @@ public class DiContainer
 
     public DiContainer(ContainerOptions options)
     {
+        //TODO: This is an engine dependency, find a way to remove it
         _logger = new Logger<DiContainer>();
         _profiler = new Profiler(_logger);
         _options = options;
@@ -55,6 +54,7 @@ public class DiContainer
             .AsSingleton();
 
         ProcessPendingBindings();
+        _logger.LogInformation("Dependency injection container initialised.", _options.LogDebugging);
     }
 
     public ObjectBindingStatement Bind<TConcrete>() where TConcrete : class
@@ -110,6 +110,9 @@ public class DiContainer
         if (_pendingBindings.Count == 0)
             return;
 
+        var pendingInstances = new List<ObjectBindingStatement>();
+        var pendingInjections = new List<object>();
+
         while (_pendingBindings.Count > 0)
         {
             var bindingStatement = _pendingBindings.Dequeue();
@@ -136,11 +139,11 @@ public class DiContainer
                 if (!objectStatement.Flags.HasFlag(StatementFlags.Singleton))
                     continue;
 
-                if (objectStatement.Flags.HasFlag(StatementFlags.Immediate) && objectStatement.Instance == null)
-                {
-                    _pendingInstances.Enqueue(objectStatement);
-                    continue;
-                }
+                if (objectStatement.Instance != null)
+                    pendingInjections.Add(objectStatement.Instance);
+
+                else if (objectStatement.Flags.HasFlag(StatementFlags.Immediate))
+                    pendingInstances.Add(objectStatement);
 
                 _instances.Add(
                     objectStatement.InterfaceType,
@@ -150,15 +153,17 @@ public class DiContainer
         }
 
         //Perform creation after all bindings have been processed to prevent immediate bindings from requesting unbound dependencies
-        while (_pendingInstances.Count > 0)
+        foreach (var pending in pendingInstances)
         {
-            var statement = _pendingInstances.Dequeue();
+            //Check instance hasn't already been created by another object requesting it
+            if (_instances[pending.InterfaceType] != null)
+                continue;
 
-            _instances.Add(
-                statement.InterfaceType,
-                Create(statement.ConcreteType)
-            );
+            _instances[pending.InterfaceType] = Create(pending.ConcreteType);
         }
+
+        //Inject into any existing objects that have not received their dependencies
+        _injector.InjectInto(pendingInjections);
     }
 
     public object Resolve(Type requestedType, Type requestingType, bool throwOnNotFound = true)
@@ -188,26 +193,27 @@ public class DiContainer
             Guard.Against.Null(requestedType, "Requested type cannot be null!");
             Guard.Against.IllegalInjection(_bindings, requestedType, requestingType);
 
-            if (requestedType.IsAssignableFrom(typeof(ILogger)))
+            if (requestedType.IsAssignableTo(typeof(ILogger)))
                 return ResolveLogger<TInterface>(requestingType);
 
-            if (requestedType.IsAssignableFrom(typeof(IFactory)))
-                return ResolveFactory<TInterface>(requestingType);
+            if (requestedType.IsAssignableTo(typeof(IFactory)))
+                return ResolveFactory<TInterface>(requestedType, requestingType);
 
             Guard.Against.MissingBinding(_bindings, requestedType);
             var binding = _bindings[requestedType];
 
-            //A singleon will always have an entry in this dictionary, even if the value is null
+            //A singleton will always have an entry in this dictionary, even if the value is null
             var isSingleton = _instances.TryGetValue(requestedType, out var instance);
-            if (isSingleton)
-            {
-                if (instance == null)
-                    _instances[requestedType] = Create(binding.ConcreteType);
-                
-                return (TInterface)_instances[requestedType];
-            }
-            
-            return (TInterface)Create(binding.ConcreteType);
+            if (!isSingleton)
+                return (TInterface)Create(binding.ConcreteType);
+
+            if (instance != null)
+                return (TInterface)instance;
+
+            var constructed = Create(requestedType);
+            _instances[binding.ConcreteType] = constructed;
+
+            return (TInterface)constructed;
         }
 
         catch (DependencyException)
@@ -218,7 +224,7 @@ public class DiContainer
             return default;
         }
     }
-    
+
     private TInterface ResolveLogger<TInterface>(Type requestingType)
     {
         Guard.Against.Null(requestingType, "Requesting type cannot be null when resolving logger!");
@@ -238,14 +244,18 @@ public class DiContainer
         return (TInterface)instance;
     }
 
-    private TInterface ResolveFactory<TInterface>(Type requestingType)
+    private TInterface ResolveFactory<TInterface>(Type requestedType, Type requestingType)
     {
         Guard.Against.Null(requestingType, "Requesting type cannot be null when resolving factory!");
+        Guard.Against.Condition(_instances.ContainsKey(requestedType), "Cannot resolve factory for singleton!");
 
         if (!_options.AllowOnDemandFactories)
-            Guard.Against.MissingBinding(_bindings, typeof(TInterface));
-        
-        var type = typeof(Factory<>).MakeGenericType()
+            Guard.Against.MissingBinding(_bindings, requestedType);
+
+        var type = requestedType.GetGenericArguments().First();
+        var factoryType = typeof(Factory<>).MakeGenericType(type);
+
+        return (TInterface)Create(factoryType);
     }
 
     public object Create(Type requestedType)
@@ -260,6 +270,9 @@ public class DiContainer
             .Select(s => Resolve(s.ParameterType, requestedType))
             .ToArray();
 
-        return constructor.Invoke(parameters);
+        var constructed = constructor.Invoke(parameters);
+        _injector.InjectInto(constructed);
+
+        return constructed;
     }
 }

@@ -1,15 +1,15 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using Godot;
-using Injact.Godot.Profiling;
 using Injact.Godot.Utility;
 using Injact.Injection;
 using Injact.Profiling;
 
 namespace Injact.Godot.Injection;
 
-public partial class Context : Node
+public abstract partial class Context : Node
 {
+    [Inject] private readonly ILogger _logger = null!;
+    
     [ExportCategory("Initialisation")] 
     [Export] private bool searchForNodes = true;
     [Export] private bool searchForInstallers = true;
@@ -17,18 +17,17 @@ public partial class Context : Node
     [ExportCategory("References")] 
     [Export] private Node[] injectTargets;
     [Export] private NodeInstaller[] installers;
-
-    private readonly List<IInstaller> _installers = new();
-
-    [Inject] private ILogger _logger;
     
     private DiContainer _container;
+    private ContainerOptions _options; 
     private Injector _injector;
+    
     private Node[] nodeBuffer;
+    private IInstaller[] nativeInstallers;
     
     public override void _EnterTree()
     {
-        _container = new DiContainer();
+        _container = new DiContainer(_options ?? new ContainerOptions());
         _injector = _container.Resolve<Injector>(this);
 
         _injector.InjectInto(this);
@@ -36,9 +35,7 @@ public partial class Context : Node
         TrySearchForInstallers();
         TryResolveAllInScene();
         
-        _installers.AddRange(installers);
-
-        foreach (var installer in _installers)
+        foreach (var installer in nativeInstallers.Concat(installers))
         {
             _logger.LogInformation($"Installing bindings for {installer.GetType().Name}.");
             
@@ -51,10 +48,15 @@ public partial class Context : Node
         foreach (var target in injectTargets)
             _injector.InjectInto(target);
     }
+
+    protected void SetContainerOptions(ContainerOptions options)
+    {
+        _options = options;
+    }
     
     protected void AddInstallers(params IInstaller[] value)
     {
-        _installers.AddRange(value);
+        nativeInstallers = value;
     }
 
     private void TrySearchForInstallers()
