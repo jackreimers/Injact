@@ -1,6 +1,6 @@
 ﻿using Godot;
 
-namespace Injact.Godot.Utility;
+namespace Injact.Godot;
 
 public static class VectorExtensions
 {

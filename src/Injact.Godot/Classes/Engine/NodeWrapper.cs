@@ -1,9 +1,7 @@
 using System;
 using Godot;
-using Injact.Engine;
-using Injact.Injection;
 
-namespace Injact.Godot.Engine;
+namespace Injact.Godot;
 
 //Note: This code is duplicated in NodeWrapper3D, I decided the complexity of trying to move it to a shared place wasn't worth it
 //These classes cannot share a base class as they inherit from different Godot classes

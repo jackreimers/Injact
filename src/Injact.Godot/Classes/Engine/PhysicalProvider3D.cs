@@ -1,9 +1,6 @@
 ﻿using Godot;
-using Injact.Engine;
-using Injact.Godot.Utility;
-using Injact.Injection;
 
-namespace Injact.Godot.Engine;
+namespace Injact.Godot;
 
 public class PhysicalProvider3D : IPhysicalProvider
 {

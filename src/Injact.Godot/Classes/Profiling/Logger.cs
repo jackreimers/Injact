@@ -1,9 +1,6 @@
 ﻿using Godot;
-using Injact.Injection;
-using Injact.Profiling;
-using Injact.Godot.Injection;
 
-namespace Injact.Godot.Profiling;
+namespace Injact.Godot;
 
 public class Logger<T> : ILogger
 {

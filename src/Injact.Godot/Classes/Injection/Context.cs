@@ -1,10 +1,7 @@
 ﻿using System.Linq;
 using Godot;
-using Injact.Godot.Utility;
-using Injact.Injection;
-using Injact.Profiling;
 
-namespace Injact.Godot.Injection;
+namespace Injact.Godot;
 
 public abstract partial class Context : Node
 {

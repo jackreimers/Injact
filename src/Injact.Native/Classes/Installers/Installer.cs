@@ -1,8 +1,6 @@
-﻿using Godot;
+﻿namespace Injact;
 
-namespace Injact.Godot;
-
-public abstract partial class NodeInstaller : Node, IInstaller
+public abstract class Installer : IInstaller
 {
     [Inject] public DiContainer Container { get; } = null!;
 
