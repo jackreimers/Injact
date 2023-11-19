@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Injact.Engine;
+using Injact.Godot.Profiling;
 using Injact.Profiling;
 using Injact.Utility;
+using Strategy.Plugins.Injact.src.Injact.Injection.Classes.Configuration;
 
 namespace Injact.Injection;
 
@@ -16,15 +18,19 @@ public class DiContainer
     private readonly Queue<IBindingStatement> _pendingBindings = new();
     private readonly Queue<ObjectBindingStatement> _pendingInstances = new();
 
+    private readonly ILogger _logger;
     private readonly IProfiler _profiler;
-    private readonly Type _loggerType;
+    private readonly ContainerOptions _options;
 
     private Injector _injector;
 
-    public DiContainer(ILogger logger, IProfiler profiler)
+    public DiContainer() : this(new ContainerOptions()) { }
+
+    public DiContainer(ContainerOptions options)
     {
-        _profiler = profiler;
-        _loggerType = logger.GetType().GetGenericTypeDefinition();
+        _logger = new Logger<DiContainer>();
+        _profiler = new Profiler(_logger);
+        _options = options;
 
         InstallDefaultBindings();
     }
@@ -180,29 +186,28 @@ public class DiContainer
         try
         {
             Guard.Against.Null(requestedType, "Requested type cannot be null!");
+            Guard.Against.IllegalInjection(_bindings, requestedType, requestingType);
 
             if (requestedType.IsAssignableFrom(typeof(ILogger)))
                 return ResolveLogger<TInterface>(requestingType);
 
+            if (requestedType.IsAssignableFrom(typeof(IFactory)))
+                return ResolveFactory<TInterface>(requestingType);
+
             Guard.Against.MissingBinding(_bindings, requestedType);
-            Guard.Against.IllegalInjection(_bindings, requestedType, requestingType);
-            
+            var binding = _bindings[requestedType];
+
+            //A singleon will always have an entry in this dictionary, even if the value is null
             var isSingleton = _instances.TryGetValue(requestedType, out var instance);
-            var hasInstance = instance != null;
-
-            if (instance == null)
+            if (isSingleton)
             {
-                //TODO: Assumes that if the object is already created it cannot have circular dependencies, confirm this
-                Guard.Against.CircularDependency(_bindings, requestingType);
+                if (instance == null)
+                    _instances[requestedType] = Create(binding.ConcreteType);
                 
-                var binding = _bindings[requestedType];
-                instance = Create(binding.ConcreteType);
+                return (TInterface)_instances[requestedType];
             }
-
-            if (isSingleton && !hasInstance)
-                _instances[requestedType] = instance;
-
-            return (TInterface)instance;
+            
+            return (TInterface)Create(binding.ConcreteType);
         }
 
         catch (DependencyException)
@@ -213,12 +218,12 @@ public class DiContainer
             return default;
         }
     }
-
+    
     private TInterface ResolveLogger<TInterface>(Type requestingType)
     {
         Guard.Against.Null(requestingType, "Requesting type cannot be null when resolving logger!");
 
-        var constructed = _loggerType.MakeGenericType(requestingType);
+        var constructed = typeof(Logger<>).MakeGenericType(requestingType);
         var constructor = constructed.GetConstructors().FirstOrDefault();
 
         var hasInstance = _instances.TryGetValue(constructed, out var instance);
@@ -233,15 +238,24 @@ public class DiContainer
         return (TInterface)instance;
     }
 
+    private TInterface ResolveFactory<TInterface>(Type requestingType)
+    {
+        Guard.Against.Null(requestingType, "Requesting type cannot be null when resolving factory!");
+
+        if (!_options.AllowOnDemandFactories)
+            Guard.Against.MissingBinding(_bindings, typeof(TInterface));
+        
+        var type = typeof(Factory<>).MakeGenericType()
+    }
+
     public object Create(Type requestedType)
     {
         Guard.Against.Null(requestedType, $"Requested type cannot be null when calling {nameof(Create)}!");
-        //TODO: I'm not sure if circular dependencies will be an issue when creating an unbound object, test and confirm
-        //Guard.Against.CircularDependency(_bindings, requestedType);
+        Guard.Against.CircularDependency(_bindings, requestedType);
 
         var constructor = ReflectionHelpers.GetConstructor(requestedType);
         var parameterTypes = constructor.GetParameters();
-        
+
         var parameters = parameterTypes
             .Select(s => Resolve(s.ParameterType, requestedType))
             .ToArray();

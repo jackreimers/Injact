@@ -20,20 +20,15 @@ public partial class Context : Node
 
     private readonly List<IInstaller> _installers = new();
 
+    [Inject] private ILogger _logger;
+    
     private DiContainer _container;
     private Injector _injector;
-
-    private ILogger _logger;
-    private IProfiler _profiler;
-    
     private Node[] nodeBuffer;
-
+    
     public override void _EnterTree()
     {
-        _logger = new Logger<Context>();
-        _profiler = new Profiler(_logger);
-
-        _container = new DiContainer(_logger, _profiler);
+        _container = new DiContainer();
         _injector = _container.Resolve<Injector>(this);
 
         _injector.InjectInto(this);
