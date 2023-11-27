@@ -12,7 +12,7 @@ public abstract partial class NodeWrapper<T> : Node, ILifecycleProvider where T 
 
     public T Value { get; set; } = null!;
 
-    public event Action<double> Update;
+    public event Action<double> OnUpdate;
 
     public override void _EnterTree()
     {
@@ -23,7 +23,7 @@ public abstract partial class NodeWrapper<T> : Node, ILifecycleProvider where T 
         _injector.InjectInto(Value);
 
         if (typeof(T).GetMethod("Update")?.DeclaringType == typeof(T))
-            Update += Value.Update;
+            OnUpdate += Value.Update;
 
         _editorValueMapper.Map(this, Value);
 
@@ -39,7 +39,7 @@ public abstract partial class NodeWrapper<T> : Node, ILifecycleProvider where T 
 
     public override void _Process(double delta)
     {
-        Update?.Invoke(delta);
+        OnUpdate?.Invoke(delta);
         base._Process(delta);
     }
 }

@@ -15,7 +15,7 @@ public class ObjectBindingStatement : IBindingStatement
     public StatementFlags Flags { get; set; }
 }
 
-public static class PendingObjectBindingExtensions
+public static class ObjectBindingExtensions
 {
     public static ObjectBindingStatement WhenInjectedInto<TValue>(this ObjectBindingStatement binding)
     {
