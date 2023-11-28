@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Injact.Core", "Injact.Core\Injact.Core.csproj", "{16D48F76-39A0-43E8-9D41-9673E0A0F481}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Injact.Godot", "Injact.Godot\Injact.Godot.csproj", "{796519A1-9377-446E-BC91-70240E7688D6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{16D48F76-39A0-43E8-9D41-9673E0A0F481}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{16D48F76-39A0-43E8-9D41-9673E0A0F481}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{16D48F76-39A0-43E8-9D41-9673E0A0F481}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{16D48F76-39A0-43E8-9D41-9673E0A0F481}.Release|Any CPU.Build.0 = Release|Any CPU
+		{796519A1-9377-446E-BC91-70240E7688D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{796519A1-9377-446E-BC91-70240E7688D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{796519A1-9377-446E-BC91-70240E7688D6}.Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{796519A1-9377-446E-BC91-70240E7688D6}.Release|Any CPU.Build.0 = Debug|Any CPU
+	EndGlobalSection
+EndGlobal
