@@ -1,4 +1,6 @@
-﻿namespace Injact;
+﻿using System;
+
+namespace Injact;
 
 public partial class Guard
 {

@@ -1,3 +1,5 @@
+using System;
+
 namespace Injact;
 
 public interface ILoggingProvider
