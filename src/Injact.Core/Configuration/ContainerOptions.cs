@@ -2,10 +2,9 @@
 
 public class ContainerOptions
 {
-    public ILoggingProvider LoggingProvider { get; set; }
-    
-    public bool LogDebugging { get; set; }
-    public bool LogTracing { get; set; }
-    
-    public bool AllowOnDemandFactories { get; set; } 
+    public bool LogDebugging { get; init; }
+    public bool LogTracing { get; init; }
+    public bool AllowOnDemandFactories { get; init; }
+
+    public ILoggingProvider LoggingProvider { get; init; } = null!;
 }

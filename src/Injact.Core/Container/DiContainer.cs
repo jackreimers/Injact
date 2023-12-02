@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 namespace Injact;
 
 public class Bindings : Dictionary<Type, Binding> { }
@@ -18,7 +14,7 @@ public class DiContainer
 
     private Injector _injector = null!;
 
-    public DiContainer() : this(new ContainerOptions()) { }
+    public DiContainer() : this(new ContainerOptions { LoggingProvider = new DefaultLoggingProvider() }) { }
 
     public DiContainer(ContainerOptions options)
     {
