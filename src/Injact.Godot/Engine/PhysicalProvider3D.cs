@@ -1,6 +1,4 @@
-﻿using Godot;
-
-namespace Injact.Godot;
+﻿namespace Injact.Godot;
 
 public class PhysicalProvider3D : IPhysicalProvider
 {
@@ -12,21 +10,19 @@ public class PhysicalProvider3D : IPhysicalProvider
         _node = node;
     }
 
-    //TODO: Fix this
-    public System.Numerics.Vector3 Position
-        => _node.Position.ToSystem();
+    public Vector3 Position => _node.Position.ToNative();
 
-    public void Translate(System.Numerics.Vector3 translation)
+    public void Translate(Vector3 translation)
     {
-        _node.Translate(translation.ToGodot());
+        _node.Translate(translation.ToEngine());
     }
 
-    public void TranslateLocal(System.Numerics.Vector3 translation)
+    public void TranslateLocal(Vector3 translation)
     {
-        _node.TranslateObjectLocal(translation.ToGodot());
+        _node.TranslateObjectLocal(translation.ToEngine());
     }
 
-    public void Rotate(System.Numerics.Vector3 rotation)
+    public void Rotate(Vector3 rotation)
     {
         _node.RotateX(rotation.X);
         _node.RotateY(rotation.Y);

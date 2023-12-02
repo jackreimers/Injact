@@ -1,6 +1,3 @@
-using System;
-using Godot;
-
 namespace Injact.Godot;
 
 //Note: This code is duplicated in NodeWrapper3D, I decided the complexity of trying to move it to a shared place wasn't worth it

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Injact;
+﻿namespace Injact;
 
 public partial class Guard
 {
@@ -28,6 +26,13 @@ public partial class Guard
         {
             if (value == null)
                 throw new NullReferenceException(message);
+        }
+        
+        //TODO: Putting this here for now but not sure it belongs here
+        public static void NotObserved<T>(IEnumerable<T> observed, T target)
+        {
+            if (!observed.Contains(target))
+                throw new InvalidOperationException($"Received an update from {target} when it was not being observed!");
         }
     }
 }

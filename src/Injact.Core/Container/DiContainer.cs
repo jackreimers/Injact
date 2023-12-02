@@ -48,52 +48,42 @@ public class DiContainer
         _logger.LogInformation("Dependency injection container initialised.", _options.LogDebugging);
     }
 
-    public ObjectBindingStatement Bind<TConcrete>() where TConcrete : class
+    public ObjectBindingBuilder Bind<TConcrete>() where TConcrete : class
     {
         return BindInternal<TConcrete, TConcrete>();
     }
 
-    public ObjectBindingStatement Bind<TInterface, TConcrete>() where TConcrete : class, TInterface
+    public ObjectBindingBuilder Bind<TInterface, TConcrete>() where TConcrete : class, TInterface
     {
         return BindInternal<TInterface, TConcrete>();
     }
 
-    private ObjectBindingStatement BindInternal<TInterface, TConcrete>()
+    private ObjectBindingBuilder BindInternal<TInterface, TConcrete>() where TConcrete : class, TInterface
     {
         Guard.Against.Unassignable<TInterface, TConcrete>();
         Guard.Against.ExistingBinding(_bindings, typeof(TInterface));
 
-        var bindingInfo = new ObjectBindingStatement
-        {
-            InterfaceType = typeof(TInterface),
-            ConcreteType = typeof(TConcrete),
-            Flags = StatementFlags.None
-        };
-
-        _pendingBindings.Enqueue(bindingInfo);
-        return bindingInfo;
+        return new ObjectBindingBuilder(BindCallback)
+            .WithType<TInterface, TConcrete>();
     }
 
-    public FactoryBindingStatement BindFactory<TFactory, TObject>() where TFactory : IFactory<TObject>
+    public FactoryBindingBuilder BindFactory<TFactory, TObject>() where TFactory : IFactory<TObject>
     {
         return BindFactoryInternal<TFactory, TObject>();
     }
 
-    private FactoryBindingStatement BindFactoryInternal<TFactory, TObject>()
+    private FactoryBindingBuilder BindFactoryInternal<TFactory, TObject>() where TFactory : IFactory<TObject>
     {
         Guard.Against.ExistingBinding(_bindings, typeof(TFactory));
         Guard.Against.ExistingBinding(_bindings, typeof(IFactory<TObject>));
 
-        var statement = new FactoryBindingStatement
-        {
-            InterfaceType = typeof(IFactory<TObject>),
-            ConcreteType = typeof(TFactory),
-            ObjectType = typeof(TObject),
-            Flags = StatementFlags.Factory
-        };
+        return new FactoryBindingBuilder(BindCallback)
+            .WithType<TFactory, TObject>();
+    }
 
+    private void BindCallback(IBindingStatement statement)
+    {
         _pendingBindings.Enqueue(statement);
-        return statement;
     }
 
     public void ProcessPendingBindings()

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Injact.Godot;
+﻿namespace Injact.Godot;
 
 public class LoggingProvider : ILoggingProvider
 {

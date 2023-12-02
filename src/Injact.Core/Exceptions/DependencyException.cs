@@ -1,5 +1,3 @@
-using System;
-
 namespace Injact;
 
 public class DependencyException : Exception
