@@ -4,7 +4,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Injact.Core", "src\Injact.C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Injact.Godot", "src\Injact.Godot\Injact.Godot.csproj", "{B6462EB2-B4E9-4F82-B085-6125E0677B6D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Injact.Tests", "src\Injact.Tests\Injact.Tests.csproj", "{F81C0C1E-340C-4C9E-8F2A-E899ACE7B45C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Injact.Core.Tests", "src\Injact.Core.Tests\Injact.Core.Tests.csproj", "{D1FB2DF4-74DE-420F-8417-7301BC10E07B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -20,9 +20,9 @@ Global
 		{B6462EB2-B4E9-4F82-B085-6125E0677B6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B6462EB2-B4E9-4F82-B085-6125E0677B6D}.Release|Any CPU.ActiveCfg = Debug|Any CPU
 		{B6462EB2-B4E9-4F82-B085-6125E0677B6D}.Release|Any CPU.Build.0 = Debug|Any CPU
-		{F81C0C1E-340C-4C9E-8F2A-E899ACE7B45C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F81C0C1E-340C-4C9E-8F2A-E899ACE7B45C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F81C0C1E-340C-4C9E-8F2A-E899ACE7B45C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F81C0C1E-340C-4C9E-8F2A-E899ACE7B45C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D1FB2DF4-74DE-420F-8417-7301BC10E07B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D1FB2DF4-74DE-420F-8417-7301BC10E07B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D1FB2DF4-74DE-420F-8417-7301BC10E07B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D1FB2DF4-74DE-420F-8417-7301BC10E07B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

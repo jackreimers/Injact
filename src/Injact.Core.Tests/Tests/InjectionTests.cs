@@ -163,25 +163,4 @@ public class InjectionTests
         Assert.NotNull(instance.TestClass);
         Assert.NotNull(instance.TestInterface);
     }
-
-    [Fact]
-    public void Inject_IllegalInjection_Fails()
-    {
-        var container = new DiContainer();
-
-        container.Bind<TestClass1>().WhenInjectedInto<TestConsumer1>();
-        container.ProcessPendingBindings();
-
-        var consumer1 = new TestConsumer1();
-        var consumer2 = new TestConsumer2();
-        var injector = container.Resolve<Injector>(typeof(TestConsumer1));
-        
-        Assert.NotNull(injector);
-        Assert.Throws(() => injector.InjectInto(consumer1));
-
-        injector.InjectInto(instance);
-
-        Assert.NotNull(instance.TestClass);
-        Assert.NotNull(instance.TestInterface);
-    }
 }
