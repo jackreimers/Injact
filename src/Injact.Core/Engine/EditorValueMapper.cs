@@ -1,7 +1,4 @@
-﻿using System.Linq;
-using System.Reflection;
-
-namespace Injact;
+﻿namespace Injact;
 
 //TODO: Confirm this works when class/interface is assignable
 public class EditorValueMapper

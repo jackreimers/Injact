@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-
-namespace Injact;
+﻿namespace Injact;
 
 public partial class Guard
 {

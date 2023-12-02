@@ -1,5 +1,3 @@
-using Godot;
-
 namespace Injact.Godot;
 
 public static class ObjectBindingStatementExtensions

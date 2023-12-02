@@ -1,6 +1,4 @@
-﻿using Godot;
-
-namespace Injact.Godot;
+﻿namespace Injact.Godot;
 
 public class Logger<T> : ILogger
 {
