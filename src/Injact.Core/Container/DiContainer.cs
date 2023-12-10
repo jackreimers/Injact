@@ -265,20 +265,7 @@ public class DiContainer
 
     public object Create(Type requestedType)
     {
-        Guard.Against.Null(requestedType, $"Requested type cannot be null when calling {nameof(Create)}!");
-        Guard.Against.CircularDependency(_bindings, requestedType);
-
-        var constructor = ReflectionHelpers.GetConstructor(requestedType);
-        var parameterTypes = constructor.GetParameters();
-
-        var parameters = parameterTypes
-            .Select(s => Resolve(s.ParameterType, requestedType))
-            .ToArray();
-
-        var constructed = constructor.Invoke(parameters);
-        _injector.InjectInto(constructed);
-
-        return constructed;
+        return Create(requestedType, Array.Empty<object>());
     }
 
     public object Create(Type requestedType, params object[] args)
@@ -286,18 +273,40 @@ public class DiContainer
         Guard.Against.Null(requestedType, $"Requested type cannot be null when calling {nameof(Create)}!");
         Guard.Against.CircularDependency(_bindings, requestedType);
 
+        //TODO: Validate args against constructor parameters and warn when there are mismatches
+        var typedArgs = args.ToDictionary(s => s.GetType(), s => s);
+        var typedArgsWithInterfaces = typedArgs.ToDictionary(s => s.Key, s => s.Value);
+
+        Guard.Against.Condition(args.Length != typedArgs.Count, "Cannot pass duplicate argument types to create method!");
+
+        foreach (var type in typedArgs)
+        {
+            //TODO: Not sure this will be very performant, try to find a better way
+            //TODO: Should also probably validate that there are no duplicate interfaces
+            foreach (var implemented in type.Key.GetInterfaces())
+                typedArgsWithInterfaces.Add(implemented, type.Value);
+        }
+
         var constructor = ReflectionHelpers.GetConstructor(requestedType);
         var parameterInfos = constructor.GetParameters();
-        var parameterTypes = parameterInfos.Select(s => s.ParameterType);
+        var parameterTypes = parameterInfos
+            .Select(s => s.ParameterType)
+            .ToArray();
 
-        var passedParameters = args
-            .Where(s => parameterTypes.Contains(s.GetType()));
-        
-        //var parameters = parameterInfos
-        //    .Except()
-        //    .Select(s => Resolve(s.ParameterType, requestedType))
-        //    .ToArray();
+        var parameters = new List<object>();
 
-        throw new NotImplementedException();
+        foreach (var type in parameterTypes)
+        {
+            var adding = typedArgsWithInterfaces.TryGetValue(type, out var value)
+                ? value
+                : Resolve(type, requestedType);
+
+            parameters.Add(adding);
+        }
+
+        var constructed = constructor.Invoke(parameters.ToArray());
+        _injector.InjectInto(constructed);
+
+        return constructed;
     }
 }

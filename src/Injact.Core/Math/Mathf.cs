@@ -98,4 +98,9 @@ public struct Mathf
     {
         return (float)Math.Atan2(y, x);
     }
+    
+    public static float Pow(float value, float power)
+    {
+        return (float)Math.Pow(value, power);
+    }
 }
