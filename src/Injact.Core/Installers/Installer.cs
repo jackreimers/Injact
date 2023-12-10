@@ -2,7 +2,12 @@
 
 public abstract class Installer : IInstaller
 {
-    [Inject] public DiContainer Container { get; } = null!;
+    protected Installer(DiContainer container)
+    {
+        Container = container;
+    }
+    
+    public DiContainer Container { get; } 
 
     public abstract void InstallBindings();
 }

@@ -31,16 +31,16 @@ public struct Vector3 : IEquatable<Vector3>
         return HashCode.Combine(X, Y, Z);
     }
 
+    public bool Equals(Vector3 other)
+    {
+        return X.Equals(other.X) && Y.Equals(other.Y) && Z.Equals(other.Z);
+    }
+
     public override bool Equals(object? obj)
     {
         return obj is Vector3 other && Equals(other);
     }
 
-    public bool Equals(Vector3 other)
-    {
-        return X.Equals(other.X) && Y.Equals(other.Y) && Z.Equals(other.Z);
-    }
-    
     public static Vector3 operator +(Vector3 first, Vector3 second)
     {
         return new Vector3(first.X + second.X, first.Y + second.Y, first.Z + second.Z);
@@ -135,7 +135,7 @@ public struct Vector3 : IEquatable<Vector3>
     {
         return pivot + Rotate(point - pivot, axis, angle);
     }
-    
+
     public static Vector3[] GetPointsInCircle(Vector3 origin, float radius, int resolution)
     {
         var points = new Vector3[resolution];
@@ -157,7 +157,7 @@ public struct Vector3 : IEquatable<Vector3>
 
         return points;
     }
-    
+
     public static readonly Vector3 Zero = new(0, 0, 0);
     public static readonly Vector3 One = new(1, 1, 1);
     public static readonly Vector3 Forward = new(0, 0, 1);

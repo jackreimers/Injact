@@ -16,15 +16,6 @@ public partial class Guard
                 throw new DependencyException($"Binding of type {type} already exists!");
         }
 
-        public static void InvalidBindingStatement(IBindingStatement bindingStatement)
-        {
-            if (bindingStatement.Flags.HasFlag(StatementFlags.Factory))
-                InvalidFactoryBindingStatement(bindingStatement as FactoryBindingStatement);
-
-            else
-                InvalidObjectBindingStatement(bindingStatement as ObjectBindingStatement);
-        }
-
         public static void InvalidObjectBindingStatement(ObjectBindingStatement bindingStatement)
         {
             Null(bindingStatement, "Binding statement cannot be null!");

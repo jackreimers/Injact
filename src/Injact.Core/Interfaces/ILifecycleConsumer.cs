@@ -6,5 +6,5 @@ public interface ILifecycleConsumer
     
     public void Start() { }
     
-    public void Update(double delta) { }
+    public void Update() { }
 }

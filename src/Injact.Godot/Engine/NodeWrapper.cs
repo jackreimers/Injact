@@ -9,7 +9,7 @@ public abstract partial class NodeWrapper<T> : Node, ILifecycleProvider where T 
 
     public T Value { get; set; } = null!;
 
-    public event Action<double> OnUpdate;
+    public event Action? OnUpdate;
 
     public override void _EnterTree()
     {
@@ -36,7 +36,7 @@ public abstract partial class NodeWrapper<T> : Node, ILifecycleProvider where T 
 
     public override void _Process(double delta)
     {
-        OnUpdate?.Invoke(delta);
+        OnUpdate?.Invoke();
         base._Process(delta);
     }
 }

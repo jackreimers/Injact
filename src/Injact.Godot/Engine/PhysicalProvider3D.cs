@@ -1,4 +1,6 @@
-﻿namespace Injact.Godot;
+﻿// ReSharper disable ArrangeObjectCreationWhenTypeNotEvident
+
+namespace Injact.Godot;
 
 public class PhysicalProvider3D : IPhysicalProvider
 {
@@ -17,9 +19,19 @@ public class PhysicalProvider3D : IPhysicalProvider
         _node.Translate(translation.ToEngine());
     }
 
+    public void Translate(float x, float y, float z)
+    {
+        _node.Translate(new(x, y, z));
+    }
+
     public void TranslateLocal(Vector3 translation)
     {
         _node.TranslateObjectLocal(translation.ToEngine());
+    }
+
+    public void TranslateLocal(float x, float y, float z)
+    {
+        _node.TranslateObjectLocal(new(x, y, z));
     }
 
     public void Rotate(Vector3 rotation)

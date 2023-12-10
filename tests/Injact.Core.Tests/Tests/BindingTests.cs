@@ -1,6 +1,6 @@
 ﻿using Injact.Tests.Classes;
 
-namespace Injact.Tests.Core;
+namespace Injact.Tests;
 
 public class BindingTests
 {

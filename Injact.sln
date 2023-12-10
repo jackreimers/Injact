@@ -4,7 +4,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Injact.Core", "src\Injact.C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Injact.Godot", "src\Injact.Godot\Injact.Godot.csproj", "{B6462EB2-B4E9-4F82-B085-6125E0677B6D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Injact.Core.Tests", "src\Injact.Core.Tests\Injact.Core.Tests.csproj", "{D1FB2DF4-74DE-420F-8417-7301BC10E07B}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{5FBBFB7E-2D4E-4369-A08F-10E09AEE1481}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{FEF2A71D-EF6B-4C06-ADB8-962AFF4D1753}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Injact.Core.Tests", "tests\Injact.Core.Tests\Injact.Core.Tests.csproj", "{7075F8A3-8057-4387-9983-07C2038D41D6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -20,9 +24,14 @@ Global
 		{B6462EB2-B4E9-4F82-B085-6125E0677B6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B6462EB2-B4E9-4F82-B085-6125E0677B6D}.Release|Any CPU.ActiveCfg = Debug|Any CPU
 		{B6462EB2-B4E9-4F82-B085-6125E0677B6D}.Release|Any CPU.Build.0 = Debug|Any CPU
-		{D1FB2DF4-74DE-420F-8417-7301BC10E07B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D1FB2DF4-74DE-420F-8417-7301BC10E07B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D1FB2DF4-74DE-420F-8417-7301BC10E07B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D1FB2DF4-74DE-420F-8417-7301BC10E07B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7075F8A3-8057-4387-9983-07C2038D41D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7075F8A3-8057-4387-9983-07C2038D41D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7075F8A3-8057-4387-9983-07C2038D41D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7075F8A3-8057-4387-9983-07C2038D41D6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{8FD15821-0105-4E52-87C9-FC30EFB95F0E} = {5FBBFB7E-2D4E-4369-A08F-10E09AEE1481}
+		{B6462EB2-B4E9-4F82-B085-6125E0677B6D} = {5FBBFB7E-2D4E-4369-A08F-10E09AEE1481}
+		{7075F8A3-8057-4387-9983-07C2038D41D6} = {FEF2A71D-EF6B-4C06-ADB8-962AFF4D1753}
 	EndGlobalSection
 EndGlobal

@@ -9,7 +9,7 @@ public abstract partial class NodeWrapper3D<T> : Node3D where T : class, IPhysic
     
     public T Value { get; set; } = null!;
 
-    public event Action<double> OnUpdate;
+    public event Action? OnUpdate;
 
     public override void _EnterTree()
     {
@@ -37,7 +37,7 @@ public abstract partial class NodeWrapper3D<T> : Node3D where T : class, IPhysic
 
     public override void _Process(double delta)
     {
-        OnUpdate?.Invoke(delta);
+        OnUpdate?.Invoke();
         base._Process(delta);
     }
 }

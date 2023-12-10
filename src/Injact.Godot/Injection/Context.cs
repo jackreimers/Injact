@@ -6,20 +6,20 @@ public abstract partial class Context : Node
 {
     [Inject] private readonly ILogger _logger = null!;
 
-    [ExportCategory("Initialisation")] [Export]
-    private bool searchForNodes = true;
+    [ExportCategory("Initialisation")] 
+    [Export] private bool searchForNodes = true;
     [Export] private bool searchForInstallers = true;
 
-    [ExportCategory("References")] [Export]
-    private Node[] injectTargets;
-    [Export] private NodeInstaller[] installers;
+    [ExportCategory("References")] 
+    [Export] private Node[] injectTargets = null!;
+    [Export] private NodeInstaller[] installers = null!;
 
-    private DiContainer _container;
-    private ContainerOptions _options;
-    private Injector _injector;
+    private DiContainer _container = null!;
+    private ContainerOptions? _options;
+    private Injector _injector = null!;
 
-    private Node[] nodeBuffer;
-    private IInstaller[] nativeInstallers;
+    private Node[]? nodeBuffer;
+    private IInstaller[] nativeInstallers = null!;
 
     public override void _EnterTree()
     {
@@ -43,6 +43,12 @@ public abstract partial class Context : Node
 
         foreach (var target in injectTargets)
             _injector.InjectInto(target);
+    }
+
+    public override void _Process(double delta)
+    {
+        Time.Delta = (float)delta;
+        base._Process(delta);
     }
 
     protected void SetContainerOptions(ContainerOptions options)

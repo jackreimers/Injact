@@ -32,12 +32,16 @@ internal static class ReflectionHelpers
         Guard.Against.Null(type, "Cannot get fields from null type!");
         var fields = new List<FieldInfo>();
 
-        while (type != null)
+        while (true)
         {
             fields.AddRange(
                 type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly));
 
-            type = type.BaseType;
+            var baseType = type.BaseType;
+            if (baseType == null)
+                break;
+
+            type = baseType;
         }
 
         return fields.ToArray();
@@ -48,15 +52,19 @@ internal static class ReflectionHelpers
         Guard.Against.Null(type, "Cannot get field from null type!");
         Guard.Against.NullOrWhitespace(parameterName, "Cannot get backing field from null or empty parameter name!");
 
-        while (type != null)
+        while (true)
         {
             var field = type.GetField($"<{parameterName}>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance);
             if (field != null)
                 return field;
 
-            type = type.BaseType;
+            var baseType = type.BaseType;
+            if (baseType == null)
+                break;
+
+            type = baseType;
         }
 
-        return null;
+        throw new DependencyException($"Could not find backing field for parameter {parameterName} on type {type}!");
     }
 }

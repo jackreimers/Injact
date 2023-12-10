@@ -31,18 +31,22 @@ public class DiContainer
 
         Bind<DiContainer>()
             .FromInstance(this)
-            .AsSingleton();
+            .AsSingleton()
+            .Finalise();
 
         Bind<Injector>()
             .FromInstance(_injector)
-            .AsSingleton();
+            .AsSingleton()
+            .Finalise();
 
         Bind<EditorValueMapper>()
-            .AsSingleton();
+            .AsSingleton()
+            .Finalise();
 
         Bind<IProfiler>()
             .FromInstance(_profiler)
-            .AsSingleton();
+            .AsSingleton()
+            .Finalise();
 
         ProcessPendingBindings();
         _logger.LogInformation("Dependency injection container initialised.", _options.LogDebugging);
@@ -147,24 +151,44 @@ public class DiContainer
         _injector.InjectInto(pendingInjections);
     }
 
-    public object? Resolve(Type requestedType, Type requestingType, bool throwOnNotFound = true)
+    public TInterface Resolve<TInterface>(Type requestingType)
     {
-        return ResolveInternal<object>(requestedType, requestingType, throwOnNotFound);
+        return ResolveInternal<TInterface>(typeof(TInterface), requestingType, true)!;
     }
 
-    public object? Resolve(Type requestedType, object requestingObject, bool throwOnNotFound = true)
-    {
-        return ResolveInternal<object>(requestedType, requestingObject.GetType(), throwOnNotFound);
-    }
-
-    public TInterface? Resolve<TInterface>(Type requestingType, bool throwOnNotFound = true)
+    public TInterface? Resolve<TInterface>(Type requestingType, bool throwOnNotFound)
     {
         return ResolveInternal<TInterface>(typeof(TInterface), requestingType, throwOnNotFound);
     }
 
-    public TInterface? Resolve<TInterface>(object requestingObject, bool throwOnNotFound = true)
+    public TInterface Resolve<TInterface>(object requestingObject)
+    {
+        return ResolveInternal<TInterface>(typeof(TInterface), requestingObject.GetType(), true)!;
+    }
+
+    public TInterface? Resolve<TInterface>(object requestingObject, bool throwOnNotFound)
     {
         return ResolveInternal<TInterface>(typeof(TInterface), requestingObject.GetType(), throwOnNotFound);
+    }
+
+    public object Resolve(Type requestedType, Type requestingType)
+    {
+        return ResolveInternal<object>(requestedType, requestingType, true)!;
+    }
+
+    public object? Resolve(Type requestedType, Type requestingType, bool throwOnNotFound)
+    {
+        return ResolveInternal<object>(requestedType, requestingType, throwOnNotFound);
+    }
+
+    public object Resolve(Type requestedType, object requestingObject)
+    {
+        return ResolveInternal<object>(requestedType, requestingObject.GetType(), true)!;
+    }
+
+    public object? Resolve(Type requestedType, object requestingObject, bool throwOnNotFound)
+    {
+        return ResolveInternal<object>(requestedType, requestingObject.GetType(), throwOnNotFound);
     }
 
     private TInterface? ResolveInternal<TInterface>(Type requestedType, Type requestingType, bool throwOnNotFound)
@@ -191,7 +215,7 @@ public class DiContainer
             if (instance != null)
                 return (TInterface)instance;
 
-            var constructed = Create(requestedType);
+            var constructed = Create(binding.ConcreteType);
             _instances[binding.ConcreteType] = constructed;
 
             return (TInterface)constructed;
@@ -255,5 +279,25 @@ public class DiContainer
         _injector.InjectInto(constructed);
 
         return constructed;
+    }
+
+    public object Create(Type requestedType, params object[] args)
+    {
+        Guard.Against.Null(requestedType, $"Requested type cannot be null when calling {nameof(Create)}!");
+        Guard.Against.CircularDependency(_bindings, requestedType);
+
+        var constructor = ReflectionHelpers.GetConstructor(requestedType);
+        var parameterInfos = constructor.GetParameters();
+        var parameterTypes = parameterInfos.Select(s => s.ParameterType);
+
+        var passedParameters = args
+            .Where(s => parameterTypes.Contains(s.GetType()));
+        
+        //var parameters = parameterInfos
+        //    .Except()
+        //    .Select(s => Resolve(s.ParameterType, requestedType))
+        //    .ToArray();
+
+        throw new NotImplementedException();
     }
 }

@@ -10,8 +10,8 @@ public partial class Guard
 
             foreach (var parameter in rootParameters)
             {
-                var isRelevant = bindings.TryGetValue(parameter.ParameterType, out var parameterBinding);
-                if (!isRelevant)
+                bindings.TryGetValue(parameter.ParameterType, out var parameterBinding);
+                if (parameterBinding == null)
                     continue;
 
                 var parameters = ReflectionHelpers.GetParameters(parameterBinding.ConcreteType);
@@ -20,7 +20,7 @@ public partial class Guard
             }
         }
 
-        public static void IllegalInjection(Bindings bindings, Type requestedType, Type requestingType)
+        public static void IllegalInjection(Bindings bindings, Type requestedType, Type? requestingType)
         {
             if (requestingType == null)
                 return;
