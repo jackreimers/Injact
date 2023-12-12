@@ -30,9 +30,8 @@ public class FactoryBindingBuilder
         return this;
     }
 
-    public FactoryBindingStatement Finalise()
+    public void Finalise()
     {
         _callback(_statement);
-        return _statement;
     }
 }

@@ -93,16 +93,12 @@ public struct Vector3 : IEquatable<Vector3>
     private static Vector3 GetNormalised(Vector3 vector)
     {
         var magnitude = GetMagnitude(vector);
-        return new Vector3(vector.X / magnitude, vector.Y / magnitude, vector.Z / magnitude);
+        return vector / magnitude; 
     }
 
     public static float Distance(Vector3 first, Vector3 second)
     {
-        var num1 = first.X - second.X;
-        var num2 = first.Y - second.Y;
-        var num3 = first.Z - second.Z;
-
-        return (float)Math.Sqrt(num1 * (double)num1 + num2 * (double)num2 + num3 * (double)num3);
+        return GetMagnitude(first - second);
     }
 
     public static float Dot(Vector3 first, Vector3 second)
@@ -125,10 +121,8 @@ public struct Vector3 : IEquatable<Vector3>
 
     public static Vector3 Rotate(Vector3 point, Vector3 axis, float angle)
     {
-        var vxp = Cross(axis, point);
-        var vxvxp = Cross(axis, vxp);
-
-        return point + Mathf.Sin(angle) * vxp + (1 - Mathf.Cos(angle)) * vxvxp;
+        angle = angle.ToRadians();
+        return point * Mathf.Cos(angle) + Cross(axis, point) * Mathf.Sin(angle) + axis * Dot(axis, point) * (1 - Mathf.Cos(angle));
     }
 
     public static Vector3 Pivot(Vector3 point, Vector3 pivot, Vector3 axis, float angle)

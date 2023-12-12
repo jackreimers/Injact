@@ -62,9 +62,8 @@ public class ObjectBindingBuilder
         return this;
     }
 
-    public ObjectBindingStatement Finalise()
+    public void Finalise()
     {
         _callback.Invoke(_statement);
-        return _statement;
     }
 }
