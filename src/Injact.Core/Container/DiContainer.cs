@@ -1,11 +1,12 @@
 namespace Injact;
 
 public class Bindings : Dictionary<Type, Binding> { }
+public class Instances : Dictionary<Type, object?> { }
 
 public class DiContainer
 {
     private readonly Bindings _bindings = new();
-    private readonly Dictionary<Type, object?> _instances = new();
+    private readonly Instances _instances = new();
     private readonly Queue<IBindingStatement> _pendingBindings = new();
 
     private readonly ILogger _logger;
@@ -271,7 +272,7 @@ public class DiContainer
     public object Create(Type requestedType, params object[] args)
     {
         Guard.Against.Null(requestedType, $"Requested type cannot be null when calling {nameof(Create)}!");
-        Guard.Against.CircularDependency(_bindings, requestedType);
+        Guard.Against.CircularDependency(_bindings, _instances, requestedType);
 
         //TODO: Validate args against constructor parameters and warn when there are mismatches
         var typedArgs = args.ToDictionary(s => s.GetType(), s => s);

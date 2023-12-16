@@ -4,16 +4,20 @@ public partial class Guard
 {
     public partial class Against
     {
-        public static void CircularDependency(Bindings bindings, Type requestedType)
+        public static void CircularDependency(Bindings bindings, Instances instances, Type requestedType)
         {
             var rootParameters = ReflectionHelpers.GetParameters(requestedType);
 
             foreach (var parameter in rootParameters)
             {
+                //If there is already an instance created we can assume that the dependency is not circular
+                if (instances.ContainsKey(parameter.ParameterType))
+                    continue;
+                
                 bindings.TryGetValue(parameter.ParameterType, out var parameterBinding);
                 if (parameterBinding == null)
                     continue;
-
+                
                 var parameters = ReflectionHelpers.GetParameters(parameterBinding.ConcreteType);
                 if (parameters.Any(s => s.ParameterType == requestedType))
                     throw new DependencyException($"Requested type of {parameter.ParameterType} contains a circular dependency!");
