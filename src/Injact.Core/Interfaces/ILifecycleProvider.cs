@@ -2,5 +2,5 @@
 
 public interface ILifecycleProvider
 {
-    public event Action OnUpdate;
+    public event Action OnUpdateEvent;
 }

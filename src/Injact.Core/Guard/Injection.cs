@@ -10,7 +10,7 @@ public partial class Guard
 
             foreach (var parameter in rootParameters)
             {
-                //If there is already an instance created we can assume that the dependency is not circular
+                //If there is already an instance created we can assume that the dependency is not circular for that parameter
                 if (instances.ContainsKey(parameter.ParameterType))
                     continue;
                 
