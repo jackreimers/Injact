@@ -1,6 +1,7 @@
 namespace Injact;
 
 public class Bindings : Dictionary<Type, Binding> { }
+
 public class Instances : Dictionary<Type, object?> { }
 
 public class DiContainer
@@ -204,6 +205,9 @@ public class DiContainer
 
             if (requestedType.IsAssignableTo(typeof(IFactory)))
                 return ResolveFactory<TInterface>(requestedType, requestingType);
+            
+            if (requestedType.IsAssignableTo(typeof(IDependencyWrapper)))
+                return (TInterface)Create(requestedType);
 
             Guard.Against.MissingBinding(_bindings, requestedType);
             var binding = _bindings[requestedType];
@@ -288,7 +292,7 @@ public class DiContainer
                 typedArgsWithInterfaces.Add(implemented, type.Value);
         }
 
-        var constructor = ReflectionHelpers.GetConstructor(requestedType);
+        var constructor = ReflectionHelpers.GetConstructor(requestedType, args.Select(s => s.GetType()));
         var parameterInfos = constructor.GetParameters();
         var parameterTypes = parameterInfos
             .Select(s => s.ParameterType)
@@ -298,11 +302,12 @@ public class DiContainer
 
         foreach (var type in parameterTypes)
         {
-            var adding = typedArgsWithInterfaces.TryGetValue(type, out var value)
-                ? value
-                : Resolve(type, requestedType);
-
-            parameters.Add(adding);
+            var targetType = typedArgsWithInterfaces
+                .Where(s => s.Key.IsAssignableFrom(type))
+                .Select(s => s.Value)
+                .FirstOrDefault();
+            
+            parameters.Add(targetType ?? Resolve(type, requestedType));
         }
 
         var constructed = constructor.Invoke(parameters.ToArray());

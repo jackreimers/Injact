@@ -14,15 +14,17 @@ public class ObjectBindingBuilder
     {
         _statement.InterfaceType = typeof(TInterface);
         _statement.ConcreteType = typeof(TConcrete);
+        
         return this;
     }
 
     public ObjectBindingBuilder FromInstance(object instance)
     {
         Guard.Against.Null(instance, $"Null instance reference on {_statement.InterfaceType.Name} binding!");
-
+        
         _statement.Flags |= StatementFlags.Singleton;
         _statement.Instance = instance;
+        
         return this;
     }
 

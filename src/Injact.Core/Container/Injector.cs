@@ -59,10 +59,8 @@ public class Injector
     {
         var propertyType = property.PropertyType;
         var backingField = ReflectionHelpers.GetBackingField(requestingType, property.Name);
-
-        Guard.Against.Null(backingField, $"{nameof(InjectIntoProperties)} failed to find backing field for {property.Name} on {requestingType}!");
-
-        backingField?.SetValue(requestingObject, _container.Resolve(propertyType, requestingType, throwOnNotFound));
+        
+        backingField.SetValue(requestingObject, _container.Resolve(propertyType, requestingType, throwOnNotFound));
     }
 
     private void InjectIntoMethods(object requestingObject)

@@ -21,6 +21,33 @@ internal static class ReflectionHelpers
         return defaultConstructor;
     }
 
+    public static ConstructorInfo GetConstructor(Type type, IEnumerable<Type> parameterTypes)
+    {
+        var constructors = type.GetConstructors();
+        var defaultConstructor = constructors[0];
+        var defaultMatchCount = 0;
+        
+        foreach (var constructor in constructors)
+        {
+            //Always preference the constructor with the Inject attribute
+            if (constructor.GetCustomAttributes(typeof(InjectAttribute), true).Any())
+            {
+                defaultConstructor = constructor;
+                break;
+            }
+                
+            var parameters = constructor.GetParameters();
+            var matchCount = parameters.Count(parameter => parameterTypes.Contains(parameter.ParameterType));
+            if (matchCount <= defaultMatchCount)
+                continue;
+            
+            defaultConstructor = constructor;
+            defaultMatchCount = matchCount;
+        }
+
+        return defaultConstructor;
+    }
+
     public static IEnumerable<ParameterInfo> GetParameters(Type type)
     {
         var constructor = GetConstructor(type);
