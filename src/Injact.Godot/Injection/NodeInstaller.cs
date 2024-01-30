@@ -2,7 +2,7 @@
 
 public abstract partial class NodeInstaller : Node, IInstaller
 {
-    [Inject] public DiContainer Container { get; } = null!;
+    [Inject] public DiContainer _container { get; } = null!;
 
     public abstract void InstallBindings();
 }

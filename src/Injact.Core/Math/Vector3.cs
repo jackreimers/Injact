@@ -129,6 +129,23 @@ public struct Vector3 : IEquatable<Vector3>
     {
         return pivot + Rotate(point - pivot, axis, angle);
     }
+    
+    public static Vector3 Round(Vector3 vector)
+    {
+        return new Vector3(
+            Mathf.Round(vector.X), 
+            Mathf.Round(vector.Y), 
+            Mathf.Round(vector.Z));
+    }
+    
+    public static Vector3 Round(Vector3 vector, float step)
+    {
+        var factor = step / 1;
+        
+        return new Vector3(
+            Mathf.Round(vector.X / factor) * factor,
+            Mathf.Round(vector.Y / factor) * factor,
+            Mathf.Round(vector.Z / factor) * factor);}
 
     public static Vector3[] GetPointsInCircle(Vector3 origin, float radius, int resolution)
     {

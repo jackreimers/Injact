@@ -54,37 +54,51 @@ public class DiContainer
         _logger.LogInformation("Dependency injection container initialised.", _options.LogDebugging);
     }
 
-    public ObjectBindingBuilder Bind<TConcrete>() where TConcrete : class
+    public ObjectBindingBuilder Bind<TConcrete>()
+        where TConcrete : class
     {
         return BindInternal<TConcrete, TConcrete>();
     }
 
-    public ObjectBindingBuilder Bind<TInterface, TConcrete>() where TConcrete : class, TInterface
+    public ObjectBindingBuilder Bind<TInterface, TConcrete>()
+        where TConcrete : class, TInterface
     {
         return BindInternal<TInterface, TConcrete>();
     }
 
-    private ObjectBindingBuilder BindInternal<TInterface, TConcrete>() where TConcrete : class, TInterface
+    private ObjectBindingBuilder BindInternal<TInterface, TConcrete>()
+        where TConcrete : class, TInterface
     {
-        Guard.Against.Unassignable<TInterface, TConcrete>();
+        Guard.Against.Assignable<TInterface, IFactory>("Cannot bind factory as object!");
+        Guard.Against.Assignable<TConcrete, IFactory>("Cannot bind factory as object!");
         Guard.Against.ExistingBinding(_bindings, typeof(TInterface));
 
         return new ObjectBindingBuilder(BindCallback)
             .WithType<TInterface, TConcrete>();
     }
 
-    public FactoryBindingBuilder BindFactory<TFactory, TObject>() where TFactory : IFactory<TObject>
+    public FactoryBindingBuilder BindFactory<TFactory, TObject>()
+        where TFactory : IFactory<TObject>
     {
-        return BindFactoryInternal<TFactory, TObject>();
+        return BindFactoryInternal<TFactory, TFactory, TObject>();
     }
 
-    private FactoryBindingBuilder BindFactoryInternal<TFactory, TObject>() where TFactory : IFactory<TObject>
+    public FactoryBindingBuilder BindFactory<TInterface, TFactory, TObject>()
+        where TInterface : IFactory<TObject>
+        where TFactory : TInterface
     {
+        return BindFactoryInternal<TInterface, TFactory, TObject>();
+    }
+
+    private FactoryBindingBuilder BindFactoryInternal<TInterface, TFactory, TObject>()
+        where TInterface : IFactory<TObject>
+        where TFactory : TInterface
+    {
+        Guard.Against.ExistingBinding(_bindings, typeof(TInterface));
         Guard.Against.ExistingBinding(_bindings, typeof(TFactory));
-        Guard.Against.ExistingBinding(_bindings, typeof(IFactory<TObject>));
 
         return new FactoryBindingBuilder(BindCallback)
-            .WithType<TFactory, TObject>();
+            .WithType<TInterface, TFactory, TObject>();
     }
 
     private void BindCallback(IBindingStatement statement)
@@ -110,8 +124,10 @@ public class DiContainer
                 var factoryStatement = (FactoryBindingStatement)bindingStatement;
                 Guard.Against.InvalidFactoryBindingStatement(factoryStatement);
 
-                //Add a binding for the factory interface and the concrete type so it can be injected from either
-                _bindings.Add(factoryStatement.InterfaceType, binding);
+                //Only add the interface binding if it is not the same as the concrete type
+                if (bindingStatement.InterfaceType != bindingStatement.ConcreteType)
+                    _bindings.Add(factoryStatement.InterfaceType, binding);
+
                 _bindings.Add(factoryStatement.ConcreteType, binding);
             }
 
@@ -203,9 +219,9 @@ public class DiContainer
             if (requestedType.IsAssignableTo(typeof(ILogger)))
                 return ResolveLogger<TInterface>(requestingType);
 
-            if (requestedType.IsAssignableTo(typeof(IFactory)))
+            if (requestedType.IsAssignableTo(typeof(IFactory)) && _options.UseAutoFactories && !_bindings.ContainsKey(requestedType))
                 return ResolveFactory<TInterface>(requestedType, requestingType);
-            
+
             if (requestedType.IsAssignableTo(typeof(IDependencyWrapper)))
                 return (TInterface)Create(requestedType);
 
@@ -259,7 +275,8 @@ public class DiContainer
         Guard.Against.Null(requestingType, "Requesting type cannot be null when resolving factory!");
         Guard.Against.Condition(_instances.ContainsKey(requestedType), "Cannot resolve factory for singleton!");
 
-        if (!_options.AllowOnDemandFactories)
+        //TODO: This is not performing any caching, should probably do that
+        if (!_options.UseAutoFactories)
             Guard.Against.MissingBinding(_bindings, requestedType);
 
         var type = requestedType.GetGenericArguments().First();
@@ -306,7 +323,7 @@ public class DiContainer
                 .Where(s => s.Key.IsAssignableFrom(type))
                 .Select(s => s.Value)
                 .FirstOrDefault();
-            
+
             parameters.Add(targetType ?? Resolve(type, requestedType));
         }
 

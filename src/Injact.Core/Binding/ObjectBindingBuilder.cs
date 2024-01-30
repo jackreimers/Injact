@@ -31,36 +31,42 @@ public class ObjectBindingBuilder
     public ObjectBindingBuilder AsSingleton()
     {
         _statement.Flags |= StatementFlags.Singleton;
+        
         return this;
     }
 
     public ObjectBindingBuilder AsTransient()
     {
         _statement.Flags &= ~StatementFlags.Singleton;
+        
         return this;
     }
 
     public ObjectBindingBuilder Immediate()
     {
         _statement.Flags |= StatementFlags.Immediate;
+        
         return this;
     }
 
     public ObjectBindingBuilder Delayed()
     {
         _statement.Flags &= ~StatementFlags.Immediate;
+        
         return this;
     }
     
     public ObjectBindingBuilder WhenInjectedInto<TValue>()
     {
         _statement.AllowedInjectionTypes.Add(typeof(TValue));
+        
         return this;
     }
 
     public ObjectBindingBuilder WhenInjectedInto(Type allowedType)
     {
         _statement.AllowedInjectionTypes.Add(allowedType);
+        
         return this;
     }
 

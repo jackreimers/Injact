@@ -1,21 +1,17 @@
 ﻿namespace Injact;
 
-public class Factory<TValue> : IFactory<TValue>
+public sealed class Factory<TValue> : BaseFactory, IFactory<TValue>
 {
-    private readonly DiContainer _container;
+    public Factory(DiContainer container) 
+        : base(container) { }
 
-    public Factory(DiContainer container)
-    {
-        _container = container;
-    }
-
-    public virtual TValue Create()
+    public TValue Create()
     {
         return (TValue)_container.Create(typeof(TValue));
     }
 
-    public virtual TValue Create(params object[] args)
+    public TValue Create(params object[] args)
     {
         return (TValue)_container.Create(typeof(TValue), args);
     }
-} 
+}

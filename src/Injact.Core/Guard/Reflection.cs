@@ -22,10 +22,22 @@ public partial class Guard
                 throw new DependencyException($"Type {typeof(TConcrete)} is assignable to {typeof(TInterface)} when it shouldn't be!");
         }
 
+        public static void Assignable<TInterface, TConcrete>(string message)
+        {
+            if (typeof(TInterface).IsAssignableFrom(typeof(TConcrete)))
+                throw new DependencyException(message);
+        }
+
         public static void Assignable(Type interfaceType, Type concreteType)
         {
             if (interfaceType.IsAssignableFrom(concreteType))
                 throw new DependencyException($"Type {concreteType} is assignable to {interfaceType} when it shouldn't be!");
+        }
+
+        public static void Assignable(Type interfaceType, Type concreteType, string message)
+        {
+            if (interfaceType.IsAssignableFrom(concreteType))
+                throw new DependencyException(message);
         }
     }
 }

@@ -2,12 +2,12 @@
 
 public abstract class Installer : IInstaller
 {
+    protected readonly DiContainer _container;
+
     protected Installer(DiContainer container)
     {
-        Container = container;
+        _container = container;
     }
-    
-    public DiContainer Container { get; } 
 
     public abstract void InstallBindings();
 }
