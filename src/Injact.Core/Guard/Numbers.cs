@@ -4,16 +4,20 @@ public partial class Guard
 {
     public partial class Against
     {
-        public static void Negative(int value, string message)
+        public static int Negative(int value)
         {
             if (value < 0)
-                throw new ArgumentOutOfRangeException(message);
+                throw new ArithmeticException("Value must be greater than or equal to zero!");
+            
+            return value;
         }
         
-        public static void ZeroOrNegative(int value, string message)
+        public static int ZeroOrNegative(int value)
         {
             if (value <= 0)
-                throw new ArgumentOutOfRangeException(message);
+                throw new ArithmeticException("Value must be greater than zero!");
+            
+            return value;
         }
     }
 }

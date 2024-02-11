@@ -56,7 +56,6 @@ internal static class ReflectionHelpers
 
     public static FieldInfo[] GetAllFields(Type type)
     {
-        Guard.Against.Null(type, "Cannot get fields from null type!");
         var fields = new List<FieldInfo>();
 
         while (true)
@@ -76,14 +75,15 @@ internal static class ReflectionHelpers
 
     public static FieldInfo GetBackingField(Type type, string parameterName)
     {
-        Guard.Against.Null(type, "Cannot get field from null type!");
-        Guard.Against.NullOrWhitespace(parameterName, "Cannot get backing field from null or empty parameter name!");
+        Guard.Against.NullOrWhitespace(parameterName);
 
         while (true)
         {
             var field = type.GetField($"<{parameterName}>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance);
             if (field != null)
+            {
                 return field;
+            }
 
             var baseType = type.BaseType;
             if (baseType == null)

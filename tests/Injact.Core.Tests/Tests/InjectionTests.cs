@@ -9,9 +9,18 @@ public class InjectionTests
     {
         var container = new DiContainer();
 
-        container.Bind<TestInterface1, TestClass1>();
-        container.Bind<TestClass2>();
-        container.Bind<TestClass_ConstructorInjection>();
+        container
+            .Bind<TestInterface1, TestClass1>()
+            .Finalise();
+
+        container
+            .Bind<TestClass2>()
+            .Finalise();
+
+        container
+            .Bind<TestClass_ConstructorInjection>()
+            .Finalise();
+        
         container.ProcessPendingBindings();
 
         var resolved = container.Resolve<TestClass_ConstructorInjection>(typeof(TestConsumer1));
@@ -26,8 +35,14 @@ public class InjectionTests
     {
         var container = new DiContainer();
 
-        container.Bind<TestClass2>();
-        container.Bind<TestInterface1, TestClass1>();
+        container
+            .Bind<TestClass2>()
+            .Finalise();
+
+        container
+            .Bind<TestInterface1, TestClass1>()
+            .Finalise();
+        
         container.ProcessPendingBindings();
 
         var instance = new TestClass_PublicReadonly_FieldInjection();
@@ -46,8 +61,14 @@ public class InjectionTests
     {
         var container = new DiContainer();
 
-        container.Bind<TestClass2>();
-        container.Bind<TestInterface1, TestClass1>();
+        container
+            .Bind<TestClass2>()
+            .Finalise();
+        
+        container
+            .Bind<TestInterface1, TestClass1>()
+            .Finalise();
+        
         container.ProcessPendingBindings();
 
         var instance = new TestClass_ProtectedReadonly_FieldInjection();
@@ -66,8 +87,14 @@ public class InjectionTests
     {
         var container = new DiContainer();
 
-        container.Bind<TestClass2>();
-        container.Bind<TestInterface1, TestClass1>();
+        container
+            .Bind<TestClass2>()
+            .Finalise();
+        
+        container
+            .Bind<TestInterface1, TestClass1>()
+            .Finalise();
+        
         container.ProcessPendingBindings();
 
         var instance = new TestClass_PrivateReadonly_FieldInjection();
@@ -89,8 +116,14 @@ public class InjectionTests
 
         var container = new DiContainer();
 
-        container.Bind<TestClass2>();
-        container.Bind<TestInterface1, TestClass1>();
+        container
+            .Bind<TestClass2>()
+            .Finalise();
+        
+        container
+            .Bind<TestInterface1, TestClass1>()
+            .Finalise();
+        
         container.ProcessPendingBindings();
 
         var instance = new TestClass_Public_PropertyInjection_NoSetter();
@@ -109,8 +142,14 @@ public class InjectionTests
     {
         var container = new DiContainer();
 
-        container.Bind<TestClass2>();
-        container.Bind<TestInterface1, TestClass1>();
+        container
+            .Bind<TestClass2>()
+            .Finalise();
+        
+        container
+            .Bind<TestInterface1, TestClass1>()
+            .Finalise();
+        
         container.ProcessPendingBindings();
 
         var instance = new TestClass_Public_MethodInjection();
@@ -129,8 +168,14 @@ public class InjectionTests
     {
         var container = new DiContainer();
 
-        container.Bind<TestClass2>();
-        container.Bind<TestInterface1, TestClass1>();
+        container
+            .Bind<TestClass2>()
+            .Finalise();
+        
+        container
+            .Bind<TestInterface1, TestClass1>()
+            .Finalise();
+        
         container.ProcessPendingBindings();
 
         var instance = new TestClass_Protected_MethodInjection();
@@ -149,8 +194,14 @@ public class InjectionTests
     {
         var container = new DiContainer();
 
-        container.Bind<TestClass2>();
-        container.Bind<TestInterface1, TestClass1>();
+        container
+            .Bind<TestClass2>()
+            .Finalise();
+        
+        container
+            .Bind<TestInterface1, TestClass1>()
+            .Finalise();
+        
         container.ProcessPendingBindings();
 
         var instance = new TestClass_Private_MethodInjection();

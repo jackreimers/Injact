@@ -12,27 +12,25 @@ public class FactoryBindingBuilder
     }
 
     public FactoryBindingBuilder WithType<TInterface, TFactory, TObject>() 
-        where TInterface : IFactory<TObject>
+        where TInterface : IFactory
         where TFactory : TInterface
     {
         _statement.InterfaceType = typeof(TInterface);
         _statement.ConcreteType = typeof(TFactory);
         _statement.ObjectType = typeof(TObject);
-        
+     
         return this;
     }
 
     public FactoryBindingBuilder WhenInjectedInto<TValue>()
     {
         _statement.AllowedInjectionTypes.Add(typeof(TValue));
-        
         return this;
     }
 
     public FactoryBindingBuilder WhenInjectedInto(Type allowedType)
     {
         _statement.AllowedInjectionTypes.Add(allowedType);
-        
         return this;
     }
 

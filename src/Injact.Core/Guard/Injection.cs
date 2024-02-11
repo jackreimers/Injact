@@ -4,6 +4,7 @@ public partial class Guard
 {
     public partial class Against
     {
+        //TODO: This does not appear to be working
         public static void CircularDependency(Bindings bindings, Instances instances, Type requestedType)
         {
             var rootParameters = ReflectionHelpers.GetParameters(requestedType);

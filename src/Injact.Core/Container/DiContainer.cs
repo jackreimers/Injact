@@ -71,31 +71,31 @@ public class DiContainer
     {
         Guard.Against.Assignable<TInterface, IFactory>("Cannot bind factory as object!");
         Guard.Against.Assignable<TConcrete, IFactory>("Cannot bind factory as object!");
-        Guard.Against.ExistingBinding(_bindings, typeof(TInterface));
+        Guard.Against.Condition(_bindings.ContainsKey(typeof(TInterface)), $"Type {nameof(TInterface)} already bound!");
 
         return new ObjectBindingBuilder(BindCallback)
             .WithType<TInterface, TConcrete>();
     }
 
     public FactoryBindingBuilder BindFactory<TFactory, TObject>()
-        where TFactory : IFactory<TObject>
+        where TFactory : IFactory
     {
         return BindFactoryInternal<TFactory, TFactory, TObject>();
     }
 
     public FactoryBindingBuilder BindFactory<TInterface, TFactory, TObject>()
-        where TInterface : IFactory<TObject>
+        where TInterface : IFactory
         where TFactory : TInterface
     {
         return BindFactoryInternal<TInterface, TFactory, TObject>();
     }
 
     private FactoryBindingBuilder BindFactoryInternal<TInterface, TFactory, TObject>()
-        where TInterface : IFactory<TObject>
+        where TInterface : IFactory
         where TFactory : TInterface
     {
-        Guard.Against.ExistingBinding(_bindings, typeof(TInterface));
-        Guard.Against.ExistingBinding(_bindings, typeof(TFactory));
+        Guard.Against.Condition(_bindings.ContainsKey(typeof(TInterface)), $"Type {nameof(TInterface)} already bound!");
+        Guard.Against.Condition(_bindings.ContainsKey(typeof(TFactory)),  $"Type {nameof(TFactory)} already bound!");
 
         return new FactoryBindingBuilder(BindCallback)
             .WithType<TInterface, TFactory, TObject>();
@@ -121,36 +121,38 @@ public class DiContainer
 
             if (bindingStatement.Flags.HasFlag(StatementFlags.Factory))
             {
-                var factoryStatement = (FactoryBindingStatement)bindingStatement;
-                Guard.Against.InvalidFactoryBindingStatement(factoryStatement);
+                var factoryBindingStatement = Guard.Against.InvalidFactoryBindingStatement(bindingStatement);
+                _bindings.Add(factoryBindingStatement.InterfaceType, binding);
 
-                //Only add the interface binding if it is not the same as the concrete type
+                //Only add the concrete binding if it is not the same as the interface type
                 if (bindingStatement.InterfaceType != bindingStatement.ConcreteType)
-                    _bindings.Add(factoryStatement.InterfaceType, binding);
-
-                _bindings.Add(factoryStatement.ConcreteType, binding);
+                {
+                    _bindings.Add(factoryBindingStatement.ConcreteType, binding);
+                }
             }
 
             else
             {
-                var objectStatement = (ObjectBindingStatement)bindingStatement;
-                Guard.Against.InvalidObjectBindingStatement(objectStatement);
-
+                var objectBindingStatement = Guard.Against.InvalidObjectBindingStatement(bindingStatement);
                 _bindings.Add(bindingStatement.InterfaceType, binding);
 
                 //There should never be a non singleton binding that has an instance set
-                if (!objectStatement.Flags.HasFlag(StatementFlags.Singleton))
+                if (!objectBindingStatement.Flags.HasFlag(StatementFlags.Singleton))
                     continue;
 
-                if (objectStatement.Instance != null)
-                    pendingInjections.Add(objectStatement.Instance);
+                if (objectBindingStatement.Instance != null)
+                {
+                    pendingInjections.Add(objectBindingStatement.Instance);
+                }
 
-                else if (objectStatement.Flags.HasFlag(StatementFlags.Immediate))
-                    pendingInstances.Add(objectStatement);
+                else if (objectBindingStatement.Flags.HasFlag(StatementFlags.Immediate))
+                {
+                    pendingInstances.Add(objectBindingStatement);
+                }
 
                 _instances.Add(
-                    objectStatement.InterfaceType,
-                    objectStatement.Instance
+                    objectBindingStatement.InterfaceType,
+                    objectBindingStatement.Instance
                 );
             }
         }
@@ -211,30 +213,33 @@ public class DiContainer
 
     private TInterface? ResolveInternal<TInterface>(Type requestedType, Type requestingType, bool throwOnNotFound)
     {
+        if (requestedType.IsAssignableTo(typeof(ILogger)))
+        {
+            return ResolveLogger<TInterface>(requestingType);
+        }
+
         try
         {
-            Guard.Against.Null(requestedType, "Requested type cannot be null!");
-            Guard.Against.IllegalInjection(_bindings, requestedType, requestingType);
-
-            if (requestedType.IsAssignableTo(typeof(ILogger)))
-                return ResolveLogger<TInterface>(requestingType);
-
             if (requestedType.IsAssignableTo(typeof(IFactory)) && _options.UseAutoFactories && !_bindings.ContainsKey(requestedType))
-                return ResolveFactory<TInterface>(requestedType, requestingType);
+            {
+                return ResolveFactory<TInterface>(requestedType);
+            }
 
-            if (requestedType.IsAssignableTo(typeof(IDependencyWrapper)))
-                return (TInterface)Create(requestedType);
+            Guard.Against.IllegalInjection(_bindings, requestedType, requestingType);
+            Guard.Against.Condition(!_bindings.ContainsKey(requestedType), $"Type {nameof(TInterface)} not bound!");
 
-            Guard.Against.MissingBinding(_bindings, requestedType);
             var binding = _bindings[requestedType];
 
-            //A singleton will always have an entry in this dictionary, even if the value is null
             var isSingleton = _instances.TryGetValue(requestedType, out var instance);
             if (!isSingleton)
+            {
                 return (TInterface)Create(binding.ConcreteType);
+            }
 
             if (instance != null)
+            {
                 return (TInterface)instance;
+            }
 
             var constructed = Create(binding.ConcreteType);
             _instances[binding.ConcreteType] = constructed;
@@ -253,32 +258,29 @@ public class DiContainer
 
     private TInterface ResolveLogger<TInterface>(Type requestingType)
     {
-        Guard.Against.Null(requestingType, "Requesting type cannot be null when resolving logger!");
-
         var constructed = _options.LoggingProvider.GetLoggerType().MakeGenericType(requestingType);
         var constructor = constructed.GetConstructors().FirstOrDefault();
 
         var hasInstance = _instances.TryGetValue(constructed, out var instance);
         if (hasInstance && instance != null)
+        {
             return (TInterface)instance;
+        }
 
-        instance = constructor?.Invoke(null);
-        Guard.Against.Null(instance, "Failed to create logger instance!");
-
+        instance = Guard.Against.Null(constructor?.Invoke(null));
         _instances.Add(constructed, instance);
 
-        return (TInterface)instance!;
+        return (TInterface)instance;
     }
 
-    private TInterface ResolveFactory<TInterface>(Type requestedType, Type requestingType)
+    private TInterface ResolveFactory<TInterface>(Type requestedType)
     {
-        Guard.Against.Null(requestingType, "Requesting type cannot be null when resolving factory!");
-        Guard.Against.Condition(_instances.ContainsKey(requestedType), "Cannot resolve factory for singleton!");
+        if (!_options.UseAutoFactories)
+        {
+            Guard.Against.Condition(!_bindings.ContainsKey(requestedType), $"Type {nameof(TInterface)} not bound!");
+        }
 
         //TODO: This is not performing any caching, should probably do that
-        if (!_options.UseAutoFactories)
-            Guard.Against.MissingBinding(_bindings, requestedType);
-
         var type = requestedType.GetGenericArguments().First();
         var factoryType = typeof(Factory<>).MakeGenericType(type);
 
@@ -292,7 +294,6 @@ public class DiContainer
 
     public object Create(Type requestedType, params object[] args)
     {
-        Guard.Against.Null(requestedType, $"Requested type cannot be null when calling {nameof(Create)}!");
         Guard.Against.CircularDependency(_bindings, _instances, requestedType);
 
         //TODO: Validate args against constructor parameters and warn when there are mismatches
@@ -306,7 +307,9 @@ public class DiContainer
             //TODO: Not sure this will be very performant, try to find a better way
             //TODO: Should also probably validate that there are no duplicate interfaces
             foreach (var implemented in type.Key.GetInterfaces())
+            {
                 typedArgsWithInterfaces.Add(implemented, type.Value);
+            }
         }
 
         var constructor = ReflectionHelpers.GetConstructor(requestedType, args.Select(s => s.GetType()));

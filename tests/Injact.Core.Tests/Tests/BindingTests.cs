@@ -21,7 +21,10 @@ public class BindingTests
     {
         var container = new DiContainer();
 
-        container.Bind<TestInterface1, TestClass1>();
+        container
+            .Bind<TestInterface1, TestClass1>()
+            .Finalise();
+        
         container.ProcessPendingBindings();
 
         var resolved = container.Resolve<TestInterface1>(typeof(TestConsumer1));
@@ -34,7 +37,10 @@ public class BindingTests
     {
         var container = new DiContainer();
 
-        container.Bind<TestClass1>();
+        container
+            .Bind<TestClass1>()
+            .Finalise();
+        
         container.ProcessPendingBindings();
 
         var resolved = container.Resolve<TestClass1>(typeof(TestConsumer1));
@@ -47,7 +53,11 @@ public class BindingTests
     {
         var container = new DiContainer();
 
-        container.Bind<TestClass1>().AsSingleton();
+        container
+            .Bind<TestClass1>()
+            .AsSingleton()
+            .Finalise();
+        
         container.ProcessPendingBindings();
 
         var resolved1 = container.Resolve<TestClass1>(typeof(TestConsumer1));
@@ -62,7 +72,12 @@ public class BindingTests
         var instance = new TestClass1();
         var container = new DiContainer();
 
-        container.Bind<TestClass1>().FromInstance(instance).AsSingleton();
+        container
+            .Bind<TestClass1>()
+            .FromInstance(instance)
+            .AsSingleton()
+            .Finalise();
+        
         container.ProcessPendingBindings();
 
         var resolved = container.Resolve<TestClass1>(typeof(TestConsumer1));
@@ -75,7 +90,11 @@ public class BindingTests
     {
         var container = new DiContainer();
 
-        container.Bind<TestClass1>().AsTransient();
+        container
+            .Bind<TestClass1>()
+            .AsTransient()
+            .Finalise();
+        
         container.ProcessPendingBindings();
 
         var resolved1 = container.Resolve<TestClass1>(typeof(TestConsumer1));

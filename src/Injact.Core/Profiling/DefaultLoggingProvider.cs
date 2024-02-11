@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Injact;
+﻿namespace Injact;
 
 public class DefaultLoggingProvider : ILoggingProvider
 {

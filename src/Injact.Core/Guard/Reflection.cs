@@ -4,39 +4,50 @@ public partial class Guard
 {
     public partial class Against
     {
-        public static void Unassignable<TInterface, TConcrete>()
+        public static void Unassignable<T1, T2>()
         {
-            if (!typeof(TInterface).IsAssignableFrom(typeof(TConcrete)))
-                throw new DependencyException($"Type {typeof(TConcrete)} is not assignable to {typeof(TInterface)} when it should be!");
+            if (!typeof(T1).IsAssignableFrom(typeof(T2)))
+                throw new DependencyException($"Type {typeof(T2)} is not assignable to {typeof(T1)} when it should be!");
         }
 
-        public static void Unassignable(Type interfaceType, Type concreteType)
+        public static void Unassignable(Type type1, Type type2)
         {
-            if (!interfaceType.IsAssignableFrom(concreteType))
-                throw new DependencyException($"Type {concreteType} is not assignable to {interfaceType} when it should be!");
+            if (!type1.IsAssignableFrom(type2))
+                throw new DependencyException($"Type {type2} is not assignable to {type1} when it should be!");
         }
-
-        public static void Assignable<TInterface, TConcrete>()
+        public static void Unassignable<T1, T2>(string message)
         {
-            if (typeof(TInterface).IsAssignableFrom(typeof(TConcrete)))
-                throw new DependencyException($"Type {typeof(TConcrete)} is assignable to {typeof(TInterface)} when it shouldn't be!");
-        }
-
-        public static void Assignable<TInterface, TConcrete>(string message)
-        {
-            if (typeof(TInterface).IsAssignableFrom(typeof(TConcrete)))
+            if (!typeof(T1).IsAssignableFrom(typeof(T2)))
                 throw new DependencyException(message);
         }
 
-        public static void Assignable(Type interfaceType, Type concreteType)
+        public static void Unassignable(Type type1, Type type2, string message)
         {
-            if (interfaceType.IsAssignableFrom(concreteType))
-                throw new DependencyException($"Type {concreteType} is assignable to {interfaceType} when it shouldn't be!");
+            if (!type1.IsAssignableFrom(type2))
+                throw new DependencyException(message);
         }
 
-        public static void Assignable(Type interfaceType, Type concreteType, string message)
+        public static void Assignable<T1, T2>()
         {
-            if (interfaceType.IsAssignableFrom(concreteType))
+            if (typeof(T1).IsAssignableFrom(typeof(T2)))
+                throw new DependencyException($"Type {typeof(T2)} is assignable to {typeof(T1)} when it shouldn't be!");
+        }
+
+        public static void Assignable<T1, T2>(string message)
+        {
+            if (typeof(T1).IsAssignableFrom(typeof(T2)))
+                throw new DependencyException(message);
+        }
+
+        public static void Assignable(Type type1, Type type2)
+        {
+            if (type1.IsAssignableFrom(type2))
+                throw new DependencyException($"Type {type2} is assignable to {type1} when it shouldn't be!");
+        }
+
+        public static void Assignable(Type type1, Type type2, string message)
+        {
+            if (type1.IsAssignableFrom(type2))
                 throw new DependencyException(message);
         }
     }

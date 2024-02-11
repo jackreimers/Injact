@@ -20,8 +20,6 @@ public class ObjectBindingBuilder
 
     public ObjectBindingBuilder FromInstance(object instance)
     {
-        Guard.Against.Null(instance, $"Null instance reference on {_statement.InterfaceType.Name} binding!");
-        
         _statement.Flags |= StatementFlags.Singleton;
         _statement.Instance = instance;
         
@@ -31,42 +29,36 @@ public class ObjectBindingBuilder
     public ObjectBindingBuilder AsSingleton()
     {
         _statement.Flags |= StatementFlags.Singleton;
-        
         return this;
     }
 
     public ObjectBindingBuilder AsTransient()
     {
         _statement.Flags &= ~StatementFlags.Singleton;
-        
         return this;
     }
 
     public ObjectBindingBuilder Immediate()
     {
         _statement.Flags |= StatementFlags.Immediate;
-        
         return this;
     }
 
     public ObjectBindingBuilder Delayed()
     {
         _statement.Flags &= ~StatementFlags.Immediate;
-        
         return this;
     }
     
     public ObjectBindingBuilder WhenInjectedInto<TValue>()
     {
         _statement.AllowedInjectionTypes.Add(typeof(TValue));
-        
         return this;
     }
 
-    public ObjectBindingBuilder WhenInjectedInto(Type allowedType)
+    public ObjectBindingBuilder WhenInjectedInto(params Type[] allowed)
     {
-        _statement.AllowedInjectionTypes.Add(allowedType);
-        
+        _statement.AllowedInjectionTypes.AddRange(allowed);
         return this;
     }
 

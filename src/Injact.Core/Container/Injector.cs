@@ -13,8 +13,6 @@ public class Injector
     {
         foreach (var target in targets)
         {
-            Guard.Against.Null(target, "Cannot inject into null target!");
-
             InjectIntoFields(target);
             InjectIntoProperties(target);
             InjectIntoMethods(target);
@@ -31,10 +29,14 @@ public class Injector
         var requestingType = requestingObject.GetType();
 
         foreach (var field in requiredFields)
+        {
             field.SetValue(requestingObject, _container.Resolve(field.FieldType, requestingType));
+        }
 
         foreach (var field in optionalFields)
+        {
             field.SetValue(requestingObject, _container.Resolve(field.FieldType, requestingType, false));
+        }
     }
 
     private void InjectIntoProperties(object requestingObject)
@@ -49,10 +51,14 @@ public class Injector
         var requestingType = requestingObject.GetType();
 
         foreach (var property in requiredProperties)
+        {
             SetPropertyValue(property, requestingObject, requestingType);
+        }
 
         foreach (var property in optionalProperties)
+        {
             SetPropertyValue(property, requestingObject, requestingType, false);
+        }
     }
 
     private void SetPropertyValue(PropertyInfo property, object requestingObject, Type requestingType, bool throwOnNotFound = true)

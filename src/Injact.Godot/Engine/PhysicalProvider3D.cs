@@ -8,7 +8,6 @@ public class PhysicalProvider3D : IPhysicalProvider
 
     public PhysicalProvider3D(Node3D node)
     {
-        Guard.Against.Null(node, $"Node cannot be null on {this}!");
         _node = node;
     }
 

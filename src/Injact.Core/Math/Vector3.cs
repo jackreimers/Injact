@@ -14,9 +14,9 @@ public struct Vector3 : IEquatable<Vector3>
 
     public Vector3()
     {
-        X = 0;
-        Y = 0;
-        Z = 0;
+        X = 0f;
+        Y = 0f;
+        Z = 0f;
     }
 
     public Vector3(float x, float y, float z)
@@ -154,13 +154,13 @@ public struct Vector3 : IEquatable<Vector3>
         for (var i = 0; i < resolution; i++)
         {
             //Divide the circle into how ever many slices as per the resolution variable
-            double val = Mathf.Round(360 / resolution) * i;
+            double val = Mathf.Round(360f / resolution) * i;
 
             //Convert to radians
             val *= Math.PI / 180;
 
             var posxy = new Vector2((float)Math.Sin(val), (float)Math.Cos(val));
-            var posxyz = new Vector3(posxy.X, 0, posxy.Y);
+            var posxyz = new Vector3(posxy.X, 0f, posxy.Y);
 
             posxyz *= radius;
             points[i] = posxyz + origin;
@@ -169,12 +169,12 @@ public struct Vector3 : IEquatable<Vector3>
         return points;
     }
 
-    public static readonly Vector3 Zero = new(0, 0, 0);
-    public static readonly Vector3 One = new(1, 1, 1);
-    public static readonly Vector3 Forward = new(0, 0, 1);
-    public static readonly Vector3 Backward = new(0, 0, -1);
-    public static readonly Vector3 Up = new(0, 1, 0);
-    public static readonly Vector3 Down = new(0, -1, 0);
-    public static readonly Vector3 Left = new(-1, 0, 0);
-    public static readonly Vector3 Right = new(1, 0, 0);
+    public static readonly Vector3 Zero = new(0f, 0f, 0f);
+    public static readonly Vector3 One = new(1f, 1f, 1f);
+    public static readonly Vector3 Forward = new(0f, 0f, 1f);
+    public static readonly Vector3 Backward = new(0f, 0f, -1f);
+    public static readonly Vector3 Up = new(0f, 1f, 0f);
+    public static readonly Vector3 Down = new(0f, -1f, 0f);
+    public static readonly Vector3 Left = new(-1f, 0f, 0f);
+    public static readonly Vector3 Right = new(1f, 0f, 0f);
 }

@@ -13,14 +13,13 @@ public abstract partial class NodeWrapper<T> : Node, ILifecycleProvider where T 
 
     public override void _EnterTree()
     {
-        Value = new T();
-
-        Guard.Against.Null(Value, $"Failed to initialise wrapped class on {this}!");
-
+        Value = Guard.Against.Null(new T());
         _injector.InjectInto(Value);
 
         if (typeof(T).GetMethod("Update")?.DeclaringType == typeof(T))
+        {
             OnUpdateEvent += Value.Update;
+        }
 
         _editorValueMapper.Map(this, Value);
 

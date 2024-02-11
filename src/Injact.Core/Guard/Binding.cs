@@ -4,29 +4,28 @@ public partial class Guard
 {
     public partial class Against
     {
-        public static void MissingBinding(Bindings bindings, Type type)
+        public static ObjectBindingStatement InvalidObjectBindingStatement(IBindingStatement bindingStatement)
         {
-            if (!bindings.ContainsKey(type))
-                throw new DependencyException($"Requested type of {type} has not been bound!");
+            //TODO: Implement or remove this
+            return (ObjectBindingStatement)bindingStatement ?? throw new DependencyException("Invalid object binding statement!");
         }
 
-        public static void ExistingBinding(Bindings bindings, Type type)
+        public static ObjectBindingStatement InvalidObjectBindingStatement(ObjectBindingStatement bindingStatement)
         {
-            if (bindings.ContainsKey(type))
-                throw new DependencyException($"Binding of type {type} already exists!");
+            //TODO: Implement or remove this
+            return bindingStatement;
         }
 
-        public static void InvalidObjectBindingStatement(ObjectBindingStatement bindingStatement)
+        public static FactoryBindingStatement InvalidFactoryBindingStatement(IBindingStatement bindingStatement)
         {
-            Null(bindingStatement, "Binding statement cannot be null!");
+            //TODO: Implement or remove this
+            return (FactoryBindingStatement)bindingStatement ?? throw new DependencyException("Invalid factory binding statement!");
         }
 
-        public static void InvalidFactoryBindingStatement(FactoryBindingStatement bindingStatement)
+        public static FactoryBindingStatement InvalidFactoryBindingStatement(FactoryBindingStatement bindingStatement)
         {
-            Null(bindingStatement, "Binding statement cannot be null!");
-
-            if (bindingStatement.ObjectType == null)
-                throw new DependencyException($"{nameof(bindingStatement.ObjectType)} is null on {bindingStatement.InterfaceType} factory binding!");
+            //TODO: Implement or remove this
+            return bindingStatement;
         }
     }
 }

@@ -10,29 +10,36 @@ public partial class Guard
                 throw new NotSupportedException(message);
         }
 
-        public static void Null(object? obj, string message)
+        public static T Null<T>(T? value)
         {
-            if (obj == null)
-                throw new NullReferenceException(message);
+            if (value == null || value == null!)
+                throw new NullReferenceException($"Expected {nameof(T)} to be non-null!");
+
+            return value;
         }
 
-        public static void NotNull(object? obj, string message)
+        public static T? NotNull<T>(T? value)
         {
-            if (obj != null)
-                throw new ArgumentException(message);
+            if (value != null || value != null!)
+                throw new ArgumentException($"Expected {nameof(T)} to be null!");
+
+            return value;
         }
 
-        public static void NullOrWhitespace(string value, string message)
+        public static string NullOrEmpty(string value)
         {
-            if (value == null)
-                throw new NullReferenceException(message);
+            if (string.IsNullOrEmpty(value))
+                throw new NullReferenceException("String cannot be empty or null!");
+
+            return value;
         }
-        
-        //TODO: Putting this here for now but not sure it belongs here
-        public static void NotObserved<T>(IEnumerable<T> observed, T target)
+
+        public static string NullOrWhitespace(string value)
         {
-            if (!observed.Contains(target))
-                throw new InvalidOperationException($"Received an update from {target} when it was not being observed!");
+            if (string.IsNullOrWhiteSpace(value))
+                throw new NullReferenceException("String cannot be empty, null or whitespace!");
+
+            return value;
         }
     }
 }
