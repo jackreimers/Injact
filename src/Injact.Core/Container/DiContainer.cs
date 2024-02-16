@@ -6,13 +6,13 @@ public class Instances : Dictionary<Type, object?> { }
 
 public class DiContainer
 {
-    private readonly Bindings _bindings = new();
-    private readonly Instances _instances = new();
-    private readonly Queue<IBindingStatement> _pendingBindings = new();
-
     private readonly ILogger _logger;
     private readonly IProfiler _profiler;
     private readonly ContainerOptions _options;
+
+    private readonly Bindings _bindings = new();
+    private readonly Instances _instances = new();
+    private readonly Queue<IBindingStatement> _pendingBindings = new();
 
     private Injector _injector = null!;
 
@@ -71,10 +71,9 @@ public class DiContainer
     {
         Guard.Against.Assignable<TInterface, IFactory>("Cannot bind factory as object!");
         Guard.Against.Assignable<TConcrete, IFactory>("Cannot bind factory as object!");
-        Guard.Against.Condition(_bindings.ContainsKey(typeof(TInterface)), $"Type {nameof(TInterface)} already bound!");
+        Guard.Against.Condition(_bindings.ContainsKey(typeof(TInterface)), $"Type {typeof(TInterface)} already bound!");
 
-        return new ObjectBindingBuilder(BindCallback)
-            .WithType<TInterface, TConcrete>();
+        return new ObjectBindingBuilder(BindCallback).WithType<TInterface, TConcrete>();
     }
 
     public FactoryBindingBuilder BindFactory<TFactory, TObject>()
@@ -94,11 +93,10 @@ public class DiContainer
         where TInterface : IFactory
         where TFactory : TInterface
     {
-        Guard.Against.Condition(_bindings.ContainsKey(typeof(TInterface)), $"Type {nameof(TInterface)} already bound!");
-        Guard.Against.Condition(_bindings.ContainsKey(typeof(TFactory)),  $"Type {nameof(TFactory)} already bound!");
+        Guard.Against.Condition(_bindings.ContainsKey(typeof(TInterface)), $"Type {typeof(TInterface)} already bound!");
+        Guard.Against.Condition(_bindings.ContainsKey(typeof(TFactory)), $"Type {typeof(TFactory)} already bound!");
 
-        return new FactoryBindingBuilder(BindCallback)
-            .WithType<TInterface, TFactory, TObject>();
+        return new FactoryBindingBuilder(BindCallback).WithType<TInterface, TFactory, TObject>();
     }
 
     private void BindCallback(IBindingStatement statement)
@@ -109,7 +107,9 @@ public class DiContainer
     public void ProcessPendingBindings()
     {
         if (_pendingBindings.Count == 0)
+        {
             return;
+        }
 
         var pendingInstances = new List<ObjectBindingStatement>();
         var pendingInjections = new List<object>();
@@ -124,7 +124,6 @@ public class DiContainer
                 var factoryBindingStatement = Guard.Against.InvalidFactoryBindingStatement(bindingStatement);
                 _bindings.Add(factoryBindingStatement.InterfaceType, binding);
 
-                //Only add the concrete binding if it is not the same as the interface type
                 if (bindingStatement.InterfaceType != bindingStatement.ConcreteType)
                 {
                     _bindings.Add(factoryBindingStatement.ConcreteType, binding);
@@ -136,9 +135,10 @@ public class DiContainer
                 var objectBindingStatement = Guard.Against.InvalidObjectBindingStatement(bindingStatement);
                 _bindings.Add(bindingStatement.InterfaceType, binding);
 
-                //There should never be a non singleton binding that has an instance set
                 if (!objectBindingStatement.Flags.HasFlag(StatementFlags.Singleton))
+                {
                     continue;
+                }
 
                 if (objectBindingStatement.Instance != null)
                 {
@@ -162,12 +162,13 @@ public class DiContainer
         {
             //Check instance hasn't already been created by another object requesting it
             if (_instances[pending.InterfaceType] != null)
+            {
                 continue;
+            }
 
             _instances[pending.InterfaceType] = Create(pending.ConcreteType);
         }
 
-        //Inject into any existing objects that have not received their dependencies
         _injector.InjectInto(pendingInjections);
     }
 
@@ -226,7 +227,7 @@ public class DiContainer
             }
 
             Guard.Against.IllegalInjection(_bindings, requestedType, requestingType);
-            Guard.Against.Condition(!_bindings.ContainsKey(requestedType), $"Type {nameof(TInterface)} not bound!");
+            Guard.Against.Condition(!_bindings.ContainsKey(requestedType), $"Type {requestedType} not bound!");
 
             var binding = _bindings[requestedType];
 
@@ -277,7 +278,7 @@ public class DiContainer
     {
         if (!_options.UseAutoFactories)
         {
-            Guard.Against.Condition(!_bindings.ContainsKey(requestedType), $"Type {nameof(TInterface)} not bound!");
+            Guard.Against.Condition(!_bindings.ContainsKey(requestedType), $"Type {requestedType} not bound!");
         }
 
         //TODO: This is not performing any caching, should probably do that

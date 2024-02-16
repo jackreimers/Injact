@@ -17,19 +17,25 @@ public class DefaultLogger<T> : ILogger
     public void LogInformation(string message, bool condition = true)
     {
         if (condition)
+        {
             Console.WriteLine($"[Info][{_typeName}] {message}");
+        }
     }
 
     public void LogWarning(string message, bool condition = true)
     {
         if (condition)
+        {
             Console.WriteLine($"[Warn][{_typeName}] {message}");
+        }
     }
 
     public void LogError(string message, bool condition = true)
     {
         if (condition)
+        {
             Console.WriteLine($"[Fail][{_typeName}] {message}");
+        }
     }
 
     public void LogTrace(string message, object[] args)

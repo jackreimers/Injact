@@ -12,7 +12,9 @@ internal static class ReflectionHelpers
         {
             //Preference is given to the constructor with the Inject attribute
             if (!constructor.GetCustomAttributes(typeof(InjectAttribute), true).Any())
+            {
                 continue;
+            }
 
             defaultConstructor = constructor;
             break;
@@ -29,7 +31,7 @@ internal static class ReflectionHelpers
         
         foreach (var constructor in constructors)
         {
-            //Always preference the constructor with the Inject attribute
+            //Preference is given to the constructor with the Inject attribute
             if (constructor.GetCustomAttributes(typeof(InjectAttribute), true).Any())
             {
                 defaultConstructor = constructor;
@@ -39,7 +41,9 @@ internal static class ReflectionHelpers
             var parameters = constructor.GetParameters();
             var matchCount = parameters.Count(parameter => parameterTypes.Contains(parameter.ParameterType));
             if (matchCount <= defaultMatchCount)
+            {
                 continue;
+            }
             
             defaultConstructor = constructor;
             defaultMatchCount = matchCount;
@@ -65,7 +69,9 @@ internal static class ReflectionHelpers
 
             var baseType = type.BaseType;
             if (baseType == null)
+            {
                 break;
+            }
 
             type = baseType;
         }
@@ -87,7 +93,9 @@ internal static class ReflectionHelpers
 
             var baseType = type.BaseType;
             if (baseType == null)
+            {
                 break;
+            }
 
             type = baseType;
         }

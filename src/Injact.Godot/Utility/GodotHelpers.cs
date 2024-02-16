@@ -8,6 +8,7 @@ public class GodotHelpers
     {
         var nodes = new List<Node>();
         GetAllChildNodesRecursive(startNode, nodes);
+        
         return nodes.ToArray();
     }
 
@@ -17,6 +18,8 @@ public class GodotHelpers
         nodes.AddRange(childNodes);
 
         foreach (var childNode in childNodes)
+        {
             GetAllChildNodesRecursive(childNode, nodes);
+        }
     }
 }

@@ -15,19 +15,25 @@ public class Logger<T> : ILogger
     public void LogInformation(string message, bool condition = true)
     {
         if (condition)
+        {
             GD.Print($"[{_typeName}] {message}");
+        }
     }
 
     public void LogWarning(string message, bool condition = true)
     {
         if (condition)
+        {
             GD.PushWarning($"[{_typeName}] {message}");
+        }
     }
 
     public void LogError(string message, bool condition = true)
     {
         if (condition)
+        {
             GD.PushError($"[{_typeName}] {message}");
+        }
     }
 
     public void LogTrace(string message, object[] args)

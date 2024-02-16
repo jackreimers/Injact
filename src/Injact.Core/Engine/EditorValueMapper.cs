@@ -26,9 +26,11 @@ public class EditorValueMapper
             .GetProperties(bindingFlags)
             .Where(s => s.GetCustomAttributes(typeof(MappedAttribute), true).Length > 0)
             .ToArray();
-        
+
         if (engineTypeFields.Length == 0 && engineTypeProperties.Length == 0)
+        {
             return;
+        }
         
         var nativeTypeFields = nativeType
             .GetFields(bindingFlags)
@@ -52,7 +54,9 @@ public class EditorValueMapper
         {
             var mappedProperty = nativeTypeFields.FirstOrDefault(s => s.Name == property.Name);
             if (mappedProperty == null)
+            {
                 continue;
+            }
             
             //TODO: Check type is assignable
 
@@ -64,13 +68,17 @@ public class EditorValueMapper
         {
             var mappedProperty = nativeTypeProperties.FirstOrDefault(s => s.Name == property.Name);
             if (mappedProperty == null)
+            {
                 continue;
+            }
 
             mappedProperty.SetValue(nativeObject, property.GetValue(engineObject));
             mappedCount++;
         }
-        
+
         if (mappedCount < nativeTypeProperties.Length + nativeTypeProperties.Length)
+        {
             _logger.LogWarning($"{engineType.Name} has {nativeTypeProperties.Length + nativeTypeProperties.Length} values marked for mapping but only {mappedCount} were mapped to the native class {nativeType}!");
+        }
     }
 }

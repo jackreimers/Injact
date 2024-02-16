@@ -1,7 +1,6 @@
-using System.Numerics;
-
 namespace Injact;
 
+//TODO: Implement IFormattable
 public struct Vector3 : IEquatable<Vector3>
 {
     public float X { get; set; }
@@ -19,16 +18,18 @@ public struct Vector3 : IEquatable<Vector3>
         Z = 0f;
     }
 
+    public Vector3(float value)
+    {
+        X = value;
+        Y = value;
+        Z = value;
+    }
+
     public Vector3(float x, float y, float z)
     {
         X = x;
         Y = y;
         Z = z;
-    }
-
-    public override int GetHashCode()
-    {
-        return HashCode.Combine(X, Y, Z);
     }
 
     public bool Equals(Vector3 other)
@@ -39,6 +40,11 @@ public struct Vector3 : IEquatable<Vector3>
     public override bool Equals(object? obj)
     {
         return obj is Vector3 other && Equals(other);
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(X, Y, Z);
     }
 
     public static Vector3 operator +(Vector3 first, Vector3 second)
@@ -93,7 +99,7 @@ public struct Vector3 : IEquatable<Vector3>
     private static Vector3 GetNormalised(Vector3 vector)
     {
         var magnitude = GetMagnitude(vector);
-        return vector / magnitude; 
+        return vector / magnitude;
     }
 
     public static float Distance(Vector3 first, Vector3 second)
@@ -114,6 +120,22 @@ public struct Vector3 : IEquatable<Vector3>
             (float)(first.X * (double)second.Y - first.Y * (double)second.X));
     }
 
+    public static Vector3 Min(Vector3 first, Vector3 second)
+    {
+        return new Vector3(
+            Mathf.Min(first.X, second.X),
+            Mathf.Min(first.Y, second.Y),
+            Mathf.Min(first.Z, second.Z));
+    }
+
+    public static Vector3 Max(Vector3 first, Vector3 second)
+    {
+        return new Vector3(
+            Mathf.Max(first.X, second.X),
+            Mathf.Max(first.Y, second.Y),
+            Mathf.Max(first.Z, second.Z));
+    }
+
     public static Vector3 Translate(Vector3 point, Vector3 reference, float distance)
     {
         return point + (point - reference).Normalised * distance;
@@ -129,44 +151,23 @@ public struct Vector3 : IEquatable<Vector3>
     {
         return pivot + Rotate(point - pivot, axis, angle);
     }
-    
+
     public static Vector3 Round(Vector3 vector)
     {
         return new Vector3(
-            Mathf.Round(vector.X), 
-            Mathf.Round(vector.Y), 
+            Mathf.Round(vector.X),
+            Mathf.Round(vector.Y),
             Mathf.Round(vector.Z));
     }
-    
+
     public static Vector3 Round(Vector3 vector, float step)
     {
         var factor = step / 1;
-        
+
         return new Vector3(
             Mathf.Round(vector.X / factor) * factor,
             Mathf.Round(vector.Y / factor) * factor,
-            Mathf.Round(vector.Z / factor) * factor);}
-
-    public static Vector3[] GetPointsInCircle(Vector3 origin, float radius, int resolution)
-    {
-        var points = new Vector3[resolution];
-
-        for (var i = 0; i < resolution; i++)
-        {
-            //Divide the circle into how ever many slices as per the resolution variable
-            double val = Mathf.Round(360f / resolution) * i;
-
-            //Convert to radians
-            val *= Math.PI / 180;
-
-            var posxy = new Vector2((float)Math.Sin(val), (float)Math.Cos(val));
-            var posxyz = new Vector3(posxy.X, 0f, posxy.Y);
-
-            posxyz *= radius;
-            points[i] = posxyz + origin;
-        }
-
-        return points;
+            Mathf.Round(vector.Z / factor) * factor);
     }
 
     public static readonly Vector3 Zero = new(0f, 0f, 0f);

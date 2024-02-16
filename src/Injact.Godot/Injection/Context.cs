@@ -25,7 +25,6 @@ public abstract partial class Context : Node
     {
         _container = new DiContainer(_options ?? new ContainerOptions { LoggingProvider = new LoggingProvider() });
         _injector = _container.Resolve<Injector>(this);
-
         _injector.InjectInto(this);
 
         TrySearchForInstallers();
@@ -42,7 +41,9 @@ public abstract partial class Context : Node
         _container.ProcessPendingBindings();
 
         foreach (var target in injectTargets)
+        {
             _injector.InjectInto(target);
+        }
     }
 
     public override void _Process(double delta)
@@ -64,7 +65,9 @@ public abstract partial class Context : Node
     private void TrySearchForInstallers()
     {
         if (!searchForInstallers)
+        {
             return;
+        }
 
         _logger.LogWarning("Search for installers is enabled, user set installers will be ignored.", installers.Any());
 
@@ -80,7 +83,9 @@ public abstract partial class Context : Node
     private void TryResolveAllInScene()
     {
         if (!searchForNodes)
+        {
             return;
+        }
 
         _logger.LogWarning("Search for nodes is enabled, user set nodes will be ignored.", injectTargets.Any());
 
