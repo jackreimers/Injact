@@ -95,6 +95,11 @@ public struct Vector3 : IEquatable<Vector3>
     {
         return Mathf.Sqrt(vector.X * vector.X + vector.Y * vector.Y + vector.Z * vector.Z);
     }
+    
+    private static float GetSquaredMagnitude(Vector3 vector)
+    {
+        return vector.X * vector.X + vector.Y * vector.Y + vector.Z * vector.Z;
+    }
 
     private static Vector3 GetNormalised(Vector3 vector)
     {
@@ -105,6 +110,11 @@ public struct Vector3 : IEquatable<Vector3>
     public static float Distance(Vector3 first, Vector3 second)
     {
         return GetMagnitude(first - second);
+    }
+    
+    public static float DistanceSquared(Vector3 first, Vector3 second)
+    {
+        return GetSquaredMagnitude(first - second);
     }
 
     public static float Dot(Vector3 first, Vector3 second)
