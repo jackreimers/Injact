@@ -19,6 +19,11 @@ public class Profile : IDisposable
         _stopwatch.Start();
     }
 
+    public void Dispose()
+    {
+        Stop();
+    }
+
     public void Stop()
     {
         _stopwatch.Stop();
@@ -27,10 +32,5 @@ public class Profile : IDisposable
         {
             _logger.LogTrace(_message, new object[] { _stopwatch.ElapsedMilliseconds + "ms" });
         }
-    }
-    
-    public void Dispose()
-    {
-        Stop();
     }
 }

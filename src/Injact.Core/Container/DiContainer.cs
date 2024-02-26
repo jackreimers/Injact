@@ -251,7 +251,9 @@ public class DiContainer
         catch (DependencyException)
         {
             if (throwOnNotFound)
+            {
                 throw;
+            }
 
             return default;
         }
