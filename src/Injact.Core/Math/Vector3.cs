@@ -1,13 +1,13 @@
 namespace Injact;
 
-//TODO: Implement IFormattable
-public struct Vector3 : IEquatable<Vector3>
+public struct Vector3 : IEquatable<Vector3>, IFormattable
 {
     public float X { get; set; }
     public float Y { get; set; }
     public float Z { get; set; }
 
     public float Magnitude => GetMagnitude(this);
+    public float SquaredMagnitude => GetSquaredMagnitude(this);
 
     public Vector3 Normalised => GetNormalised(this);
 
@@ -45,6 +45,20 @@ public struct Vector3 : IEquatable<Vector3>
     public override int GetHashCode()
     {
         return HashCode.Combine(X, Y, Z);
+    }
+
+    public string ToString(string? format, IFormatProvider? formatProvider)
+    {
+        if (string.IsNullOrEmpty(format))
+        {
+            format = "G";
+        }
+
+        return format switch
+        {
+            "G" => $"({X}, {Y}, {Z})",
+            _ => throw new FormatException($"The {format} format string is not supported.")
+        };
     }
 
     public static Vector3 operator +(Vector3 first, Vector3 second)
@@ -95,7 +109,7 @@ public struct Vector3 : IEquatable<Vector3>
     {
         return Mathf.Sqrt(vector.X * vector.X + vector.Y * vector.Y + vector.Z * vector.Z);
     }
-    
+
     private static float GetSquaredMagnitude(Vector3 vector)
     {
         return vector.X * vector.X + vector.Y * vector.Y + vector.Z * vector.Z;
@@ -111,8 +125,8 @@ public struct Vector3 : IEquatable<Vector3>
     {
         return GetMagnitude(first - second);
     }
-    
-    public static float DistanceSquared(Vector3 first, Vector3 second)
+
+    public static float SquaredDistance(Vector3 first, Vector3 second)
     {
         return GetSquaredMagnitude(first - second);
     }
@@ -178,6 +192,30 @@ public struct Vector3 : IEquatable<Vector3>
             Mathf.Round(vector.X / factor) * factor,
             Mathf.Round(vector.Y / factor) * factor,
             Mathf.Round(vector.Z / factor) * factor);
+    }
+
+    public static float Angle(Vector3 first, Vector3 second)
+    {
+        var cross = Cross(first, second);
+        var dot = Dot(first, second);
+
+        return Mathf.Atan2(cross.Magnitude, dot);
+    }
+
+    public static float SignedAngle(Vector3 first, Vector3 second, Vector3 axis)
+    {
+        var cross = Cross(first, second);
+        var dot = Dot(first, second);
+
+        var angle = Mathf.Atan2(cross.Magnitude, dot);
+
+        var check = Dot(axis, cross);
+        if (check < 0f)
+        {
+            angle = -angle;
+        }
+
+        return angle;
     }
 
     public static readonly Vector3 Zero = new(0f, 0f, 0f);

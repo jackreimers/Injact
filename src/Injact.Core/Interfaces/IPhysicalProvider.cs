@@ -18,4 +18,6 @@ public interface IPhysicalProvider
     public void Rotate(Vector3 rotation);
     
     public void Rotate(float x, float y, float z);
+    
+    public Vector3 LookAt(Vector3 target);
 }

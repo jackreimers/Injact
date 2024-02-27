@@ -1,4 +1,5 @@
-﻿// ReSharper disable ArrangeObjectCreationWhenTypeNotEvident
+﻿using NativeVector = Injact.Vector3;
+using EngineVector = Godot.Vector3;
 
 namespace Injact.Godot;
 
@@ -11,29 +12,29 @@ public class PhysicalProvider3D : IPhysicalProvider
         _node = node;
     }
 
-    public Vector3 Position => _node.Position.ToNative();
+    public NativeVector Position => _node.Position.ToNative();
 
-    public void Translate(Vector3 translation)
+    public void Translate(NativeVector translation)
     {
         _node.Translate(translation.ToEngine());
     }
 
     public void Translate(float x, float y, float z)
     {
-        _node.Translate(new(x, y, z));
+        _node.Translate(new EngineVector(x, y, z));
     }
 
-    public void TranslateLocal(Vector3 translation)
+    public void TranslateLocal(NativeVector translation)
     {
         _node.TranslateObjectLocal(translation.ToEngine());
     }
 
     public void TranslateLocal(float x, float y, float z)
     {
-        _node.TranslateObjectLocal(new(x, y, z));
+        _node.TranslateObjectLocal(new EngineVector(x, y, z));
     }
 
-    public void Rotate(Vector3 rotation)
+    public void Rotate(NativeVector rotation)
     {
         _node.RotateX(rotation.X);
         _node.RotateY(rotation.Y);
@@ -45,5 +46,11 @@ public class PhysicalProvider3D : IPhysicalProvider
         _node.RotateX(x);
         _node.RotateY(y);
         _node.RotateZ(z);
+    }
+    
+    public NativeVector LookAt(NativeVector target)
+    {
+        _node.LookAt(target.ToEngine());
+        return _node.Rotation.ToNative();
     }
 }
