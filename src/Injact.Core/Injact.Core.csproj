@@ -7,8 +7,4 @@
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     </PropertyGroup>
 
-    <ItemGroup>
-        <ProjectReference Include="..\..\..\Strategy\Injact.Generators\Injact.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
-    </ItemGroup>
-
 </Project>
