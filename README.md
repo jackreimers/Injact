@@ -10,3 +10,4 @@ Injact is a simple, easy to use dependency injection and inversion of control (I
 - [ ] Publish as Nuget package
 - [x] Document basic features
 - [ ] Document advanced features
+- [ ] Improve test coverage
