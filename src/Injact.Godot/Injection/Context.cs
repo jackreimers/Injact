@@ -2,7 +2,7 @@
 
 namespace Injact.Godot;
 
-public abstract partial class Context : Node
+public partial class Context : Node
 {
     [Inject] private readonly ILogger _logger = null!;
 
