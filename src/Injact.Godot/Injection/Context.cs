@@ -14,6 +14,10 @@ public abstract partial class Context : Node
     [Export] private Node[] injectTargets = null!;
     [Export] private NodeInstaller[] installers = null!;
 
+    [ExportCategory("Logging")]
+    [Export] private bool logDebugging = true;
+    [Export] private bool logTracing = true;
+    
     private DiContainer _container = null!;
     private ContainerOptions? _options;
     private Injector _injector = null!;
@@ -23,7 +27,14 @@ public abstract partial class Context : Node
 
     public override void _EnterTree()
     {
-        _container = new DiContainer(_options ?? new ContainerOptions { LoggingProvider = new LoggingProvider() });
+        //Note that logging settings will not be updated at runtime
+        _container = new DiContainer(_options ?? new ContainerOptions
+        {
+            LogDebugging = logDebugging,
+            LogTracing = logTracing,
+            LoggingProvider = new LoggingProvider()
+        });
+        
         _injector = _container.Resolve<Injector>(this);
         _injector.InjectInto(this);
 
