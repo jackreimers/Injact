@@ -12,7 +12,7 @@ Injact is a simple, easy to use dependency injection and inversion of control (I
 
 #### Generating a Solution File
 - Create a `.cs` script file in the Godot editor.
-- Open the file in Visual Studio or Rider.
+- Double click the file in the Godot editor to open it in Visual Studio or Rider.
   - Note: you may need to set an external editor in Editor > Editor Settings... > Dotnet > Editor.
 
 ## 🏆 Roadmap
