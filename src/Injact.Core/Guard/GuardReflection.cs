@@ -1,8 +1,8 @@
 ﻿namespace Injact;
 
-public partial class Guard
+public static partial class Guard
 {
-    public partial class Against
+    public static partial class Against
     {
         public static void Unassignable<T1, T2>()
         {
@@ -19,6 +19,7 @@ public partial class Guard
                 throw new DependencyException($"Type {type2} is not assignable to {type1} when it should be!");
             }
         }
+
         public static void Unassignable<T1, T2>(string message)
         {
             if (!typeof(T1).IsAssignableFrom(typeof(T2)))

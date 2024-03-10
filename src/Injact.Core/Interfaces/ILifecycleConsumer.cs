@@ -2,9 +2,9 @@
 
 public interface ILifecycleConsumer
 {
-    public void Awake() { }
-    
-    public void Start() { }
-    
-    public void Update() { }
+    public void Awake();
+
+    public void Start();
+
+    public void Update();
 }

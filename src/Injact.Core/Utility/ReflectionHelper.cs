@@ -1,6 +1,6 @@
 namespace Injact;
 
-internal static class ReflectionHelpers
+internal static class ReflectionHelper
 {
     public static ConstructorInfo GetConstructor(Type type)
     {

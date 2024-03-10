@@ -5,14 +5,22 @@ namespace Injact.Godot;
 
 public class PhysicalProvider3D : IPhysicalProvider
 {
+    private readonly Node _parent;
     private readonly Node3D _node;
+
+    public bool Enabled { get; private set; } = true;
 
     public PhysicalProvider3D(Node3D node)
     {
+        _parent = node.GetParent();
         _node = node;
     }
 
-    public NativeVector Position => _node.Position.ToNative();
+    public NativeVector Position
+    {
+        get => _node.Position.ToNative();
+        set => _node.Position = value.ToEngine();
+    }
 
     public void Translate(NativeVector translation)
     {
@@ -47,10 +55,45 @@ public class PhysicalProvider3D : IPhysicalProvider
         _node.RotateY(y);
         _node.RotateZ(z);
     }
-    
+
     public NativeVector LookAt(NativeVector target)
     {
         _node.LookAt(target.ToEngine());
         return _node.Rotation.ToNative();
+    }
+
+    public void Enable()
+    {
+        SetEnabled(true);
+    }
+
+    public void Disable()
+    {
+        SetEnabled(false);
+    }
+
+    public void SetEnabled(bool value)
+    {
+        if (Enabled == value)
+        {
+            return;
+        }
+
+        Enabled = value;
+
+        if (value)
+        {
+            _parent.AddChild(_node);
+        }
+
+        else
+        {
+            _parent.RemoveChild(_node);
+        }
+    }
+
+    public void Destroy()
+    {
+        _node.QueueFree();
     }
 }

@@ -7,7 +7,6 @@ public class Profile : IDisposable
     private readonly ILogger _logger;
     private readonly string _message;
     private readonly bool _condition;
-
     private readonly Stopwatch _stopwatch = new();
 
     public Profile(ILogger logger, string message, bool condition = true)

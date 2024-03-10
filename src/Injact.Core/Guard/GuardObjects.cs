@@ -1,8 +1,8 @@
 ﻿namespace Injact;
 
-public partial class Guard
+public static partial class Guard
 {
-    public partial class Against
+    public static partial class Against
     {
         public static void Condition(bool condition, string message)
         {

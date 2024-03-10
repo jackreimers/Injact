@@ -2,7 +2,7 @@
 
 namespace Injact.Godot;
 
-public class GodotHelpers
+public class GodotHelper
 {
     public static Node[] GetAllChildNodes(Node startNode)
     {

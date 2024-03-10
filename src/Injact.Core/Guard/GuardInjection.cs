@@ -1,13 +1,13 @@
 ﻿namespace Injact;
 
-public partial class Guard
+public static partial class Guard
 {
-    public partial class Against
+    public static partial class Against
     {
         //TODO: This does not appear to be working
         public static void CircularDependency(Bindings bindings, Instances instances, Type requestedType)
         {
-            var rootParameters = ReflectionHelpers.GetParameters(requestedType);
+            var rootParameters = ReflectionHelper.GetParameters(requestedType);
 
             foreach (var parameter in rootParameters)
             {
@@ -23,7 +23,7 @@ public partial class Guard
                     continue;
                 }
                 
-                var parameters = ReflectionHelpers.GetParameters(parameterBinding.ConcreteType);
+                var parameters = ReflectionHelper.GetParameters(parameterBinding.ConcreteType);
                 if (parameters.Any(s => s.ParameterType == requestedType))
                 {
                     throw new DependencyException($"Requested type of {parameter.ParameterType} contains a circular dependency!");

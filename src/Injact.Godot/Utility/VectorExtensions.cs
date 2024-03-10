@@ -1,17 +1,30 @@
-﻿using NativeVector = Injact.Vector3;
-using EngineVector = Godot.Vector3;
+﻿using NativeVector2 = Injact.Vector2;
+using EngineVector2 = Godot.Vector2;
+
+using NativeVector3 = Injact.Vector3;
+using EngineVector3 = Godot.Vector3;
 
 namespace Injact.Godot;
 
 public static class VectorExtensions
 {
-    public static NativeVector ToNative(this EngineVector vector)
+    public static NativeVector2 ToNative(this EngineVector2 vector)
     {
-        return new NativeVector(vector.X, vector.Y, vector.Z);
+        return new NativeVector2(vector.X, vector.Y);
+    }
+    
+    public static EngineVector2 ToEngine(this NativeVector2 vector)
+    {
+        return new EngineVector2(vector.X, vector.Y);
+    }
+    
+    public static NativeVector3 ToNative(this EngineVector3 vector)
+    {
+        return new NativeVector3(vector.X, vector.Y, vector.Z);
     }
 
-    public static EngineVector ToEngine(this NativeVector vector)
+    public static EngineVector3 ToEngine(this NativeVector3 vector)
     {
-        return new EngineVector(vector.X, vector.Y, vector.Z);
+        return new EngineVector3(vector.X, vector.Y, vector.Z);
     }
 }

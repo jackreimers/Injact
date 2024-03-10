@@ -4,10 +4,16 @@ public static class Time
 {
     public static float Delta { get; set; }
 
-    public static event Action? OnUpdate;
+    public static event Action? OnUpdateEvent;
+    public static event Action? OnLateUpdateEvent;
 
     public static void TriggerUpdate()
     {
-        OnUpdate?.Invoke();
+        OnUpdateEvent?.Invoke();
+    }
+    
+    public static void TriggerLateUpdate()
+    {
+        OnLateUpdateEvent?.Invoke();
     }
 }

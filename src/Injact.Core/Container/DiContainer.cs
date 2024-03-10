@@ -9,14 +9,14 @@ public class DiContainer
     private readonly ILogger _logger;
     private readonly IProfiler _profiler;
     private readonly ContainerOptions _options;
-
     private readonly Bindings _bindings = new();
     private readonly Instances _instances = new();
     private readonly Queue<IBindingStatement> _pendingBindings = new();
 
     private Injector _injector = null!;
 
-    public DiContainer() : this(new ContainerOptions { LoggingProvider = new DefaultLoggingProvider() }) { }
+    public DiContainer() 
+        : this(new ContainerOptions { LoggingProvider = new DefaultLoggingProvider() }) { }
 
     public DiContainer(ContainerOptions options)
     {
@@ -315,7 +315,7 @@ public class DiContainer
             }
         }
 
-        var constructor = ReflectionHelpers.GetConstructor(requestedType, args.Select(s => s.GetType()));
+        var constructor = ReflectionHelper.GetConstructor(requestedType, args.Select(s => s.GetType()));
         var parameterInfos = constructor.GetParameters();
         var parameterTypes = parameterInfos
             .Select(s => s.ParameterType)

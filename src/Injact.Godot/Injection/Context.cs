@@ -60,6 +60,9 @@ public partial class Context : Node
     public override void _Process(double delta)
     {
         Time.Delta = (float)delta;
+        Time.TriggerUpdate();
+        Time.TriggerLateUpdate();
+        
         base._Process(delta);
     }
 
@@ -82,7 +85,7 @@ public partial class Context : Node
 
         _logger.LogWarning("Search for installers is enabled, user set installers will be ignored.", installers.Any());
 
-        nodeBuffer ??= GodotHelpers.GetAllChildNodes(GetTree().Root);
+        nodeBuffer ??= GodotHelper.GetAllChildNodes(GetTree().Root);
         installers = nodeBuffer
             .Where(s => s is NodeInstaller)
             .Cast<NodeInstaller>()
@@ -100,7 +103,7 @@ public partial class Context : Node
 
         _logger.LogWarning("Search for nodes is enabled, user set nodes will be ignored.", injectTargets.Any());
 
-        nodeBuffer ??= GodotHelpers.GetAllChildNodes(GetTree().Root);
+        nodeBuffer ??= GodotHelper.GetAllChildNodes(GetTree().Root);
         injectTargets = nodeBuffer;
     }
 }
