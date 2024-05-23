@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Injact.Godot;
+﻿namespace Injact.Godot;
 
 public class GodotHelper
 {

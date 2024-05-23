@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace Injact;
+﻿namespace Injact;
 
 public class Profile : IDisposable
 {

@@ -1,29 +1,27 @@
-﻿using System.Linq;
-
-namespace Injact.Godot;
+﻿namespace Injact.Godot;
 
 public partial class Context : Node
 {
     [Inject] private readonly ILogger _logger = null!;
 
-    [ExportCategory("Initialisation")] 
+    [ExportCategory("Initialisation")]
     [Export] private bool searchForNodes = true;
     [Export] private bool searchForInstallers = true;
 
-    [ExportCategory("References")] 
-    [Export] private Node[] injectTargets = null!;
-    [Export] private NodeInstaller[] installers = null!;
+    [ExportCategory("References")]
+    [Export] private Node[] injectTargets = Array.Empty<Node>();
+    [Export] private NodeInstaller[] installers = Array.Empty<NodeInstaller>();
 
     [ExportCategory("Logging")]
     [Export] private bool logDebugging = true;
     [Export] private bool logTracing = true;
-    
+
     private DiContainer _container = null!;
     private ContainerOptions? _options;
     private Injector _injector = null!;
 
     private Node[]? nodeBuffer;
-    private IInstaller[] nativeInstallers = null!;
+    private IInstaller[] nativeInstallers = Array.Empty<IInstaller>();
 
     public override void _EnterTree()
     {
@@ -34,7 +32,7 @@ public partial class Context : Node
             LogTracing = logTracing,
             LoggingProvider = new LoggingProvider()
         });
-        
+
         _injector = _container.Resolve<Injector>(this);
         _injector.InjectInto(this);
 
@@ -62,7 +60,7 @@ public partial class Context : Node
         Time.Delta = (float)delta;
         Time.TriggerUpdate();
         Time.TriggerLateUpdate();
-        
+
         base._Process(delta);
     }
 

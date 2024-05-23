@@ -12,7 +12,6 @@ public class DiContainer
     private readonly Bindings _bindings = new();
     private readonly Instances _instances = new();
     private readonly Queue<IBindingStatement> _pendingBindings = new();
-
     private Injector _injector = null!;
 
     public DiContainer() 

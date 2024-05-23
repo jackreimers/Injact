@@ -1,12 +1,9 @@
 namespace Injact.Godot;
 
-public static class ObjectBindingStatementExtensions
+public static class ObjectBindingBuilderExtensions
 {
-    public static ObjectBindingStatement FromNode(this ObjectBindingStatement binding, Node node)
+    public static ObjectBindingBuilder FromNode(this ObjectBindingBuilder builder, Node node)
     {
-        binding.Flags |= StatementFlags.Singleton;
-        binding.Instance = node;
-        
-        return binding;
+        return builder.FromInstance(node);
     }
 }
