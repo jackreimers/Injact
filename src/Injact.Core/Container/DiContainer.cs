@@ -1,5 +1,7 @@
 namespace Injact;
 
+public class Options : Dictionary<Type, object> { }
+
 public class Bindings : Dictionary<Type, Binding> { }
 
 public class Instances : Dictionary<Type, object?> { }
@@ -8,20 +10,21 @@ public class DiContainer
 {
     private readonly ILogger _logger;
     private readonly IProfiler _profiler;
-    private readonly ContainerOptions _options;
+    private readonly ContainerOptions _containerOptions;
+    private readonly Options _options = new();
     private readonly Bindings _bindings = new();
     private readonly Instances _instances = new();
     private readonly Queue<IBindingStatement> _pendingBindings = new();
     private Injector _injector = null!;
 
-    public DiContainer() 
+    public DiContainer()
         : this(new ContainerOptions { LoggingProvider = new DefaultLoggingProvider() }) { }
 
-    public DiContainer(ContainerOptions options)
+    public DiContainer(ContainerOptions containerOptions)
     {
-        _logger = options.LoggingProvider.GetLogger<DiContainer>();
+        _logger = containerOptions.LoggingProvider.GetLogger<DiContainer>();
         _profiler = new Profiler(_logger);
-        _options = options;
+        _containerOptions = containerOptions;
 
         InstallDefaultBindings();
     }
@@ -50,7 +53,35 @@ public class DiContainer
             .Finalise();
 
         ProcessPendingBindings();
-        _logger.LogInformation("Dependency injection container initialised.", _options.LogDebugging);
+        _logger.LogInformation("Dependency injection container initialised.", _containerOptions.LogDebugging);
+    }
+
+    public void AddOptions<T>(string section)
+    {
+        var workingDirectory = Environment.CurrentDirectory;
+        var appsettingsPath = Path.Combine(workingDirectory, "appsettings.json");
+
+        if (!File.Exists(appsettingsPath))
+        {
+            _logger.LogWarning($"No appsettings.json found at \"{appsettingsPath}\".");
+            return;
+        }
+
+        var file = File.ReadAllText(appsettingsPath);
+        var json = JsonDocument.Parse(file);
+
+        var options = json.RootElement
+            .GetProperty(section)
+            .Deserialize<T>();
+
+        if (options == null)
+        {
+            _logger.LogWarning($"No options found for section \"{section}\".");
+            return;
+        }
+
+        var optionsType = typeof(T);
+        _options.Add(optionsType, new Options { { optionsType, options } });
     }
 
     public ObjectBindingBuilder Bind<TConcrete>()
@@ -220,7 +251,7 @@ public class DiContainer
 
         try
         {
-            if (requestedType.IsAssignableTo(typeof(IFactory)) && _options.UseAutoFactories && !_bindings.ContainsKey(requestedType))
+            if (requestedType.IsAssignableTo(typeof(IFactory)) && _containerOptions.UseAutoFactories && !_bindings.ContainsKey(requestedType))
             {
                 return ResolveFactory<TInterface>(requestedType);
             }
@@ -260,7 +291,7 @@ public class DiContainer
 
     private TInterface ResolveLogger<TInterface>(Type requestingType)
     {
-        var constructed = _options.LoggingProvider.GetLoggerType().MakeGenericType(requestingType);
+        var constructed = _containerOptions.LoggingProvider.GetLoggerType().MakeGenericType(requestingType);
         var constructor = constructed.GetConstructors().FirstOrDefault();
 
         var hasInstance = _instances.TryGetValue(constructed, out var instance);
@@ -277,7 +308,7 @@ public class DiContainer
 
     private TInterface ResolveFactory<TInterface>(Type requestedType)
     {
-        if (!_options.UseAutoFactories)
+        if (!_containerOptions.UseAutoFactories)
         {
             Guard.Against.Condition(!_bindings.ContainsKey(requestedType), $"Type {requestedType} not bound!");
         }
