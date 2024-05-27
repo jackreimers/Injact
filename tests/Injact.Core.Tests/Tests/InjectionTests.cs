@@ -1,6 +1,4 @@
-﻿using Injact.Tests.Classes;
-
-namespace Injact.Tests;
+﻿namespace Injact.Tests;
 
 public class InjectionTests
 {

@@ -42,8 +42,8 @@ public partial class Context : Node
         foreach (var installer in nativeInstallers.Concat(installers))
         {
             _logger.LogInformation($"Installing bindings for {installer.GetType().Name}.");
-
             _injector.InjectInto(installer);
+
             installer.InstallBindings();
         }
 
