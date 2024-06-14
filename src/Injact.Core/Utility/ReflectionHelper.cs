@@ -2,6 +2,27 @@ namespace Injact;
 
 internal static class ReflectionHelper
 {
+    public static bool IsPrimitive(Type type)
+    {
+        return type.IsPrimitive || type == typeof(string) || type == typeof(decimal);
+    }
+
+    public static bool HasTypeInDependencyTree(Type type, Type dependencyType)
+    {
+        if (IsPrimitive(type) || type.IsInterface)
+        {
+            return false;
+        }
+
+        if (type == dependencyType)
+        {
+            return true;
+        }
+
+        return GetParameters(type)
+            .Any(parameter => HasTypeInDependencyTree(parameter.ParameterType, dependencyType));
+    }
+
     public static ConstructorInfo GetConstructor(Type type)
     {
         //TODO: Should the constructor with the largest number of parameters be used instead?

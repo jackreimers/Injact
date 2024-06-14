@@ -21,6 +21,10 @@ public class DiContainer
     public DiContainer()
         : this(new ContainerOptions { LoggingProvider = new DefaultLoggingProvider() }) { }
 
+    /// <summary>
+    /// Create a new instance of the dependency injection container.
+    /// </summary>
+    /// <param name="containerOptions">Settings to control container features.</param>
     public DiContainer(ContainerOptions containerOptions)
     {
         _logger = containerOptions.LoggingProvider.GetLogger<DiContainer>();
@@ -57,40 +61,71 @@ public class DiContainer
         _logger.LogInformation("Dependency injection container initialised.", _containerOptions.LogDebugging);
     }
 
-    public void AddOptions<T>(string section)
+    /// <summary>
+    /// Add options from a JSON file to the container.
+    /// </summary>
+    /// <param name="section">The name of the section in the JSON file.</param>
+    /// <param name="path">The JSON file path relative to the project root.</param>
+    /// <typeparam name="T">The options object to deserialise into.</typeparam>
+    /// <remarks>Method will search for appsettings.json in the project root if path is null.</remarks>
+    public void AddOptions<T>(string? section = null, string? path = null)
     {
         var workingDirectory = Environment.CurrentDirectory;
-        var appsettingsPath = Path.Combine(workingDirectory, "appsettings.json");
+        var appsettingsPath = !string.IsNullOrWhiteSpace(path)
+            ? Path.Combine(workingDirectory, path)
+            : Path.Combine(workingDirectory, "appsettings.json");
 
         if (!File.Exists(appsettingsPath))
         {
-            _logger.LogWarning($"No appsettings.json found at \"{appsettingsPath}\".");
-            return;
+            throw new OptionsExeption($"No JSON file found at \"{appsettingsPath}\".");
         }
 
-        var file = File.ReadAllText(appsettingsPath);
-        var json = JsonDocument.Parse(file);
-
-        var options = json.RootElement
-            .GetProperty(section)
-            .Deserialize<T>();
-
-        if (options == null)
+        try
         {
-            _logger.LogWarning($"No options found for section \"{section}\".");
-            return;
+            var file = File.ReadAllText(appsettingsPath);
+            var json = JsonDocument.Parse(file);
+
+            //TODO: This is failing silently when the section does not exist in the file
+            var options = section == null
+                ? json.RootElement.Deserialize<T>()
+                : json.RootElement
+                    .GetProperty(section)
+                    .Deserialize<T>();
+
+            if (options == null)
+            {
+                throw new OptionsExeption($"No options found for section \"{section}\".");
+            }
+
+            Bind<IOptions<T>>()
+                .FromInstance(new Options<T>(options))
+                .AsSingleton()
+                .Finalise();
+
+            ProcessPendingBindings();
         }
 
-        var optionsType = typeof(T);
-        _options.Add(optionsType, new Options { { optionsType, options } });
+        catch (Exception exception)
+        {
+            throw new OptionsExeption($"Failed to load options for section \"{section}\".\n{exception.Message}");
+        }
     }
 
+    /// <summary>
+    /// Create a binding using a concrete type.
+    /// </summary>
+    /// <typeparam name="TConcrete">The type of the object being bound.</typeparam>
     public ObjectBindingBuilder Bind<TConcrete>()
         where TConcrete : class
     {
         return BindInternal<TConcrete, TConcrete>();
     }
 
+    /// <summary>
+    /// Create a binding using an interface.
+    /// </summary>
+    /// <typeparam name="TInterface">The interface the object is being bound as.</typeparam>
+    /// <typeparam name="TConcrete">The concrete type of the object being bound.</typeparam>
     public ObjectBindingBuilder Bind<TInterface, TConcrete>()
         where TConcrete : class, TInterface
     {
@@ -102,17 +137,28 @@ public class DiContainer
     {
         Guard.Against.Assignable<TInterface, IFactory>("Cannot bind factory as object!");
         Guard.Against.Assignable<TConcrete, IFactory>("Cannot bind factory as object!");
-        Guard.Against.Condition(_bindings.ContainsKey(typeof(TInterface)), $"Type {typeof(TInterface)} already bound!");
 
         return new ObjectBindingBuilder(BindCallback).WithType<TInterface, TConcrete>();
     }
 
+    /// <summary>
+    /// Create a factory binding using a concrete type.
+    /// </summary>
+    /// <typeparam name="TFactory">The type of the factory being bound.</typeparam>
+    /// <typeparam name="TObject">The type of object the factory creates.</typeparam>
     public FactoryBindingBuilder BindFactory<TFactory, TObject>()
         where TFactory : IFactory
     {
         return BindFactoryInternal<TFactory, TFactory, TObject>();
     }
 
+    /// <summary>
+    /// Create a factory binding using an interface.
+    /// </summary>
+    /// <typeparam name="TInterface">The interface the factory is being bound as.</typeparam>
+    /// <typeparam name="TFactory">The type of the factory being bound.</typeparam>
+    /// <typeparam name="TObject">The type of object the factory creates.</typeparam>
+    /// <returns></returns>
     public FactoryBindingBuilder BindFactory<TInterface, TFactory, TObject>()
         where TInterface : IFactory
         where TFactory : TInterface
@@ -135,6 +181,9 @@ public class DiContainer
         _pendingBindings.Enqueue(statement);
     }
 
+    /// <summary>
+    /// Create bindings for all pending binding statements.
+    /// </summary>
     public void ProcessPendingBindings()
     {
         if (_pendingBindings.Count == 0)
@@ -150,41 +199,44 @@ public class DiContainer
             var bindingStatement = _pendingBindings.Dequeue();
             var binding = new Binding(bindingStatement.ConcreteType, bindingStatement.AllowedInjectionTypes);
 
-            if (bindingStatement.Flags.HasFlag(StatementFlags.Factory))
+            try
             {
-                var factoryBindingStatement = Guard.Against.InvalidFactoryBindingStatement(bindingStatement);
-                _bindings.Add(factoryBindingStatement.InterfaceType, binding);
-
-                if (bindingStatement.InterfaceType != bindingStatement.ConcreteType)
+                if (bindingStatement.Flags.HasFlag(StatementFlags.Factory))
                 {
-                    _bindings.Add(factoryBindingStatement.ConcreteType, binding);
+                    var factoryBindingStatement = Guard.Against.InvalidFactoryBindingStatement(bindingStatement);
+                    _bindings.Add(factoryBindingStatement.InterfaceType, binding);
+                }
+
+                else
+                {
+                    var objectBindingStatement = Guard.Against.InvalidObjectBindingStatement(bindingStatement);
+                    _bindings.Add(bindingStatement.InterfaceType, binding);
+
+                    if (!objectBindingStatement.Flags.HasFlag(StatementFlags.Singleton))
+                    {
+                        continue;
+                    }
+
+                    if (objectBindingStatement.Instance != null)
+                    {
+                        pendingInjections.Add(objectBindingStatement.Instance);
+                    }
+
+                    else if (objectBindingStatement.Flags.HasFlag(StatementFlags.Immediate))
+                    {
+                        pendingInstances.Add(objectBindingStatement);
+                    }
+
+                    _instances.Add(
+                        objectBindingStatement.InterfaceType,
+                        objectBindingStatement.Instance
+                    );
                 }
             }
 
-            else
+            catch (ArgumentException exception)
             {
-                var objectBindingStatement = Guard.Against.InvalidObjectBindingStatement(bindingStatement);
-                _bindings.Add(bindingStatement.InterfaceType, binding);
-
-                if (!objectBindingStatement.Flags.HasFlag(StatementFlags.Singleton))
-                {
-                    continue;
-                }
-
-                if (objectBindingStatement.Instance != null)
-                {
-                    pendingInjections.Add(objectBindingStatement.Instance);
-                }
-
-                else if (objectBindingStatement.Flags.HasFlag(StatementFlags.Immediate))
-                {
-                    pendingInstances.Add(objectBindingStatement);
-                }
-
-                _instances.Add(
-                    objectBindingStatement.InterfaceType,
-                    objectBindingStatement.Instance
-                );
+                throw new DependencyException($"Binding already exists for {bindingStatement.InterfaceType}!", exception);
             }
         }
 
@@ -200,7 +252,7 @@ public class DiContainer
             _instances[pending.InterfaceType] = Create(pending.ConcreteType);
         }
 
-        _injector.InjectInto(pendingInjections);
+        injector.InjectInto(pendingInjections);
     }
 
     public TInterface Resolve<TInterface>(Type requestingType)
@@ -321,14 +373,39 @@ public class DiContainer
         return (TInterface)Create(factoryType);
     }
 
-    public object Create(Type requestedType)
+    /// <summary>
+    /// Create a new instance of a type.
+    /// </summary>
+    /// <param name="requestedType">The type to be created.</param>
+    /// <param name="deferInitialisation">If true and the object implements <see cref="ILifecycleObject"/>, the container will not call Awake or Start.</param>
+    /// <remarks>It's recommended to use a factory instead of calling this method directly.</remarks>
+    public object Create(Type requestedType, bool deferInitialisation)
     {
-        return Create(requestedType, Array.Empty<object>());
+        return Create(requestedType, deferInitialisation, Array.Empty<object>());
     }
 
+    /// <summary>
+    /// Create a new instance of a type.
+    /// </summary>
+    /// <param name="requestedType">The type to be created.</param>
+    /// <param name="args">Arguments to be passed to the constructor of the created object.</param>
+    /// <remarks>It's recommended to use a factory instead of calling this method directly.</remarks>
     public object Create(Type requestedType, params object[] args)
     {
-        Guard.Against.CircularDependency(_bindings, _instances, requestedType);
+        return Create(requestedType, false, args);
+    }
+
+    /// <summary>
+    /// Create a new instance of a type.
+    /// </summary>
+    /// <param name="requestedType">The type to be created.</param>
+    /// <param name="deferInitialisation">If true and the object implements <see cref="ILifecycleObject"/>, the container will not call Awake or Start.</param>
+    /// <param name="args">Arguments to be passed to the constructor of the created object.</param>
+    /// <remarks>It's recommended to use a factory instead of calling this method directly.</remarks>
+    public object Create(Type requestedType, bool deferInitialisation, params object[] args)
+    {
+        Guard.Against.Condition(requestedType.IsInterface, "Cannot create an instance of an interface!");
+        Guard.Against.CircularDependency(_instances, requestedType);
 
         //TODO: Validate args against constructor parameters and warn when there are mismatches
         var typedArgs = args.ToDictionary(s => s.GetType(), s => s);
@@ -357,7 +434,7 @@ public class DiContainer
         foreach (var type in parameterTypes)
         {
             var targetType = typedArgsWithInterfaces
-                .Where(s => s.Key.IsAssignableFrom(type))
+                .Where(s => s.Key.IsAssignableTo(type))
                 .Select(s => s.Value)
                 .FirstOrDefault();
 
@@ -365,7 +442,17 @@ public class DiContainer
         }
 
         var constructed = constructor.Invoke(parameters.ToArray());
-        _injector.InjectInto(constructed);
+        injector.InjectInto(constructed);
+
+        if (deferInitialisation || constructed is not ILifecycleObject lifecycleObject)
+        {
+            return constructed;
+        }
+
+        lifecycleObject.Awake();
+        lifecycleObject.Start();
+
+        //TODO: Consider how update could be handled here
 
         return constructed;
     }

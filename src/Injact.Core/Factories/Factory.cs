@@ -1,17 +1,44 @@
 ﻿namespace Injact;
 
-public sealed class Factory<TValue> : BaseFactory, IFactory<TValue>
+public sealed class Factory<TInterface> : IFactory<TInterface>
 {
-    public Factory(DiContainer container) 
-        : base(container) { }
+    private readonly DiContainer _container;
 
-    public TValue Create()
+    public Factory(DiContainer container)
     {
-        return (TValue)_container.Create(typeof(TValue));
+        _container = container;
     }
 
-    public TValue Create(params object[] args)
+    public TInterface Create(bool deferInitialisation = false)
     {
-        return (TValue)_container.Create(typeof(TValue), args);
+        return (TInterface)_container.Create(typeof(TInterface), deferInitialisation, Array.Empty<object>());
+    }
+
+    public TInterface Create(params object[] args)
+    {
+        return (TInterface)_container.Create(typeof(TInterface), false, args);
+    }
+
+    public TInterface Create(bool deferInitialisation, params object[] args)
+    {
+        return (TInterface)_container.Create(typeof(TInterface), deferInitialisation, args);
+    }
+
+    public TInterface Create<TConcrete>(bool deferInitialisation = false)
+        where TConcrete : class, TInterface
+    {
+        return (TInterface)_container.Create(typeof(TConcrete), deferInitialisation, Array.Empty<object>());
+    }
+
+    public TInterface Create<TConcrete>(params object[] args)
+        where TConcrete : class, TInterface
+    {
+        return (TInterface)_container.Create(typeof(TConcrete), false, args);
+    }
+
+    public TInterface Create<TConcrete>(bool deferInitialisation, params object[] args)
+        where TConcrete : class, TInterface
+    {
+        return (TInterface)_container.Create(typeof(TConcrete), deferInitialisation, args);
     }
 }
