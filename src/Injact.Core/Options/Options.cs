@@ -1,4 +1,4 @@
-﻿namespace Injact.Core;
+﻿namespace Injact;
 
 public class Options<T> : IOptions<T>
 {

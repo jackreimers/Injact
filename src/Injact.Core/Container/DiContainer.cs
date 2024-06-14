@@ -1,7 +1,5 @@
 namespace Injact;
 
-public class Options : Dictionary<Type, object> { }
-
 public class Bindings : Dictionary<Type, Binding> { }
 
 public class Instances : Dictionary<Type, object?> { }
@@ -11,12 +9,15 @@ public class DiContainer
     private readonly ILogger _logger;
     private readonly IProfiler _profiler;
     private readonly ContainerOptions _containerOptions;
-    private readonly Options _options = new();
     private readonly Bindings _bindings = new();
     private readonly Instances _instances = new();
     private readonly Queue<IBindingStatement> _pendingBindings = new();
-    private Injector _injector = null!;
 
+    private Injector injector = null!;
+
+    /// <summary>
+    /// Create a new instance of the dependency injection container.
+    /// </summary>
     public DiContainer()
         : this(new ContainerOptions { LoggingProvider = new DefaultLoggingProvider() }) { }
 
@@ -31,7 +32,7 @@ public class DiContainer
 
     private void InstallDefaultBindings()
     {
-        _injector = new Injector(this);
+        injector = new Injector(this);
 
         Bind<DiContainer>()
             .FromInstance(this)
@@ -39,7 +40,7 @@ public class DiContainer
             .Finalise();
 
         Bind<Injector>()
-            .FromInstance(_injector)
+            .FromInstance(injector)
             .AsSingleton()
             .Finalise();
 

@@ -2,7 +2,8 @@ namespace Injact.Godot;
 
 //Note: This code is duplicated in NodeWrapper3D, I decided the complexity of trying to move it to a shared place wasn't worth it
 //These classes cannot share a base class as they inherit from different Godot classes
-public abstract partial class NodeWrapper<T> : Node, ILifecycleProvider where T : class, ILifecycleConsumer, new()
+public abstract partial class NodeWrapper<T> : Node
+    where T : class, ILifecycleObject, new()
 {
     [Inject] private readonly Injector _injector = null!;
     [Inject] private readonly EditorValueMapper _editorValueMapper = null!;

@@ -10,7 +10,7 @@ public class DefaultLogger<T> : ILogger
         _typeName = typeName is nameof(DiContainer) or nameof(Injector)
             ? "Injact"
             : typeName;
-        
+
         LogWarning("DefaultLogger is being used, no messages will be logged to the game engine console!");
     }
 
@@ -18,7 +18,7 @@ public class DefaultLogger<T> : ILogger
     {
         if (condition)
         {
-            Console.WriteLine($"[Info][{_typeName}] {message}");
+            Console.WriteLine($"[{_typeName}] {message}");
         }
     }
 
@@ -26,7 +26,7 @@ public class DefaultLogger<T> : ILogger
     {
         if (condition)
         {
-            Console.WriteLine($"[Warn][{_typeName}] {message}");
+            Console.WriteLine($"[{_typeName}] {message}");
         }
     }
 
@@ -34,7 +34,7 @@ public class DefaultLogger<T> : ILogger
     {
         if (condition)
         {
-            Console.WriteLine($"[Fail][{_typeName}] {message}");
+            Console.WriteLine($"[{_typeName}] {message}");
         }
     }
 

@@ -93,11 +93,11 @@ public struct Vector3 : IEquatable<Vector3>, IFormattable
 
     public static bool operator ==(Vector3 first, Vector3 second)
     {
-        var num1 = first.X - second.X;
-        var num2 = first.Y - second.Y;
-        var num3 = first.Z - second.Z;
+        var number1 = first.X - second.X;
+        var number2 = first.Y - second.Y;
+        var number3 = first.Z - second.Z;
 
-        return num1 * (double)num1 + num2 * (double)num2 + num3 * (double)num3 < 9.999999439624929E-11;
+        return number1 * (double)number1 + number2 * (double)number2 + number3 * (double)number3 < Mathf.FloatComparisonError;
     }
 
     public static bool operator !=(Vector3 first, Vector3 second)
@@ -107,7 +107,7 @@ public struct Vector3 : IEquatable<Vector3>, IFormattable
 
     private static float GetMagnitude(Vector3 vector)
     {
-        return Mathf.Sqrt(vector.X * vector.X + vector.Y * vector.Y + vector.Z * vector.Z);
+        return Mathf.SquareRoot(vector.X * vector.X + vector.Y * vector.Y + vector.Z * vector.Z);
     }
 
     private static float GetSquaredMagnitude(Vector3 vector)
@@ -144,20 +144,20 @@ public struct Vector3 : IEquatable<Vector3>, IFormattable
             (float)(first.X * (double)second.Y - first.Y * (double)second.X));
     }
 
-    public static Vector3 Min(Vector3 first, Vector3 second)
+    public static Vector3 Minimum(Vector3 first, Vector3 second)
     {
         return new Vector3(
-            Mathf.Min(first.X, second.X),
-            Mathf.Min(first.Y, second.Y),
-            Mathf.Min(first.Z, second.Z));
+            Mathf.Minimum(first.X, second.X),
+            Mathf.Minimum(first.Y, second.Y),
+            Mathf.Minimum(first.Z, second.Z));
     }
 
-    public static Vector3 Max(Vector3 first, Vector3 second)
+    public static Vector3 Maximum(Vector3 first, Vector3 second)
     {
         return new Vector3(
-            Mathf.Max(first.X, second.X),
-            Mathf.Max(first.Y, second.Y),
-            Mathf.Max(first.Z, second.Z));
+            Mathf.Maximum(first.X, second.X),
+            Mathf.Maximum(first.Y, second.Y),
+            Mathf.Maximum(first.Z, second.Z));
     }
 
     public static Vector3 Translate(Vector3 point, Vector3 reference, float distance)
