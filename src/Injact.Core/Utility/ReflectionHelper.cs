@@ -9,7 +9,7 @@ internal static class ReflectionHelper
 
     public static bool HasTypeInDependencyTree(Type type, Type dependencyType)
     {
-        if (IsPrimitive(type) || type.IsInterface)
+        if (IsPrimitive(type) || type.IsInterface || type.IsAbstract)
         {
             return false;
         }
