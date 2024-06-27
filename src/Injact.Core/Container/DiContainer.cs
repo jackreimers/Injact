@@ -84,14 +84,25 @@ public class DiContainer
         {
             var file = File.ReadAllText(appsettingsPath);
             var json = JsonDocument.Parse(file);
+            var value = json.RootElement;
+
+            if (section != null)
+            {
+                var properties = section.Split(':');
+
+                foreach (var property in properties)
+                {
+                    if (!value.TryGetProperty(property, out var next))
+                    {
+                        throw new OptionsExeption($"Section \"{section}\" not found in JSON file.");
+                    }
+
+                    value = next;
+                }
+            }
 
             //TODO: This is failing silently when the section does not exist in the file
-            var options = section == null
-                ? json.RootElement.Deserialize<T>()
-                : json.RootElement
-                    .GetProperty(section)
-                    .Deserialize<T>();
-
+            var options = value.Deserialize<T>();
             if (options == null)
             {
                 throw new OptionsExeption($"No options found for section \"{section}\".");
