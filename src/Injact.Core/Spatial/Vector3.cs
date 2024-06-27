@@ -126,7 +126,7 @@ public struct Vector3 : IEquatable<Vector3>, IFormattable
         return GetMagnitude(first - second);
     }
 
-    public static float SquaredDistance(Vector3 first, Vector3 second)
+    public static float DistanceSquared(Vector3 first, Vector3 second)
     {
         return GetSquaredMagnitude(first - second);
     }

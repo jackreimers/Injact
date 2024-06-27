@@ -3,7 +3,7 @@
 //Note: This code is duplicated in NodeWrapper, I decided the complexity of trying to move it to a shared place wasn't worth it
 //These classes cannot share a base class as they inherit from different Godot classes
 public abstract partial class NodeWrapper3D<T> : Node3D
-    where T : class, IPhysicalObject, new()
+    where T : class, ILifecycleObject, IPhysicalObject, new()
 {
     [Inject] private readonly Injector _injector = null!;
     [Inject] private readonly EditorValueMapper _editorValueMapper = null!;

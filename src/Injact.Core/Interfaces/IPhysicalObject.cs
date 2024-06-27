@@ -1,6 +1,6 @@
 ﻿namespace Injact;
 
-public interface IPhysicalObject : ILifecycleObject
+public interface IPhysicalObject
 {
     public IPhysicalProvider PhysicalProvider { get; set; }
 }

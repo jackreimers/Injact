@@ -86,7 +86,7 @@ internal static class ReflectionHelper
         while (true)
         {
             fields.AddRange(
-                type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly));
+                type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance));
 
             var baseType = type.BaseType;
             if (baseType == null)
