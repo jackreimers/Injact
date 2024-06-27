@@ -410,7 +410,7 @@ public class DiContainer
     /// Create a new instance of a type.
     /// </summary>
     /// <param name="requestedType">The type to be created.</param>
-    /// <param name="deferInitialisation">If true and the object implements <see cref="ILifecycleObject"/>, the container will not call Awake or Start.</param>
+    /// <param name="deferInitialisation">If true and the object implements <see cref="ILifecycleObject"/>, the container will not call Awake, Start or Enable.</param>
     /// <param name="args">Arguments to be passed to the constructor of the created object.</param>
     /// <remarks>It's recommended to use a factory instead of calling this method directly.</remarks>
     public object Create(Type requestedType, bool deferInitialisation, params object[] args)
@@ -455,16 +455,24 @@ public class DiContainer
         var constructed = constructor.Invoke(parameters.ToArray());
         injector.InjectInto(constructed);
 
-        if (deferInitialisation || constructed is not ILifecycleObject lifecycleObject)
+        if (deferInitialisation || constructed is not LifecycleObject lifecycleObject)
         {
             return constructed;
         }
 
+        var lifecycleType = typeof(LifecycleObject);
+
+        var updateMethod = Guard.Against.Null(requestedType.GetMethod("Update"));
+        if (updateMethod.DeclaringType != lifecycleType)
+        {
+            var property = Guard.Against.Null(lifecycleType.GetField("_shouldRunUpdate", BindingFlags.NonPublic | BindingFlags.Instance));
+            property.SetValue(constructed, true);
+        }
+
         lifecycleObject.Awake();
         lifecycleObject.Start();
+        lifecycleObject.Enable();
 
-        //TODO: Consider how update could be handled here
-
-        return constructed;
+        return lifecycleObject;
     }
 }

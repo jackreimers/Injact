@@ -1,12 +1,22 @@
-﻿namespace Injact;
+namespace Injact;
 
 public interface ILifecycleObject
 {
-    public void Awake() { }
+    public bool Enabled { get; set; }
 
-    public void Start() { }
+    public event Action? OnEnableEvent;
+    public event Action? OnDisableEvent;
+    public event Action? OnDestroyEvent;
 
-    public void Update() { }
+    public void Awake();
 
-    public void Destroy() { }
+    public void Start();
+
+    public void Update();
+
+    public void Destroy();
+
+    public void Enable();
+
+    public void Disable();
 }
