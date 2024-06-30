@@ -5,6 +5,7 @@ public interface IFactory<TInterface> : IFactory
     public TInterface Create(bool deferInitialisation = false);
 
     public TInterface Create(params object[] args);
+
     public TInterface Create(bool deferInitialisation, params object[] args);
 
     public TInterface Create<TConcrete>(bool deferInitialisation = false)

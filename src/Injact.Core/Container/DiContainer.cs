@@ -455,7 +455,7 @@ public class DiContainer
         var constructed = constructor.Invoke(parameters.ToArray());
         injector.InjectInto(constructed);
 
-        if (deferInitialisation || constructed is not LifecycleObject lifecycleObject)
+        if (constructed is not LifecycleObject lifecycleObject)
         {
             return constructed;
         }
@@ -467,6 +467,11 @@ public class DiContainer
         {
             var property = Guard.Against.Null(lifecycleType.GetField("_shouldRunUpdate", BindingFlags.NonPublic | BindingFlags.Instance));
             property.SetValue(constructed, true);
+        }
+
+        if (deferInitialisation)
+        {
+            return constructed;
         }
 
         lifecycleObject.Awake();
