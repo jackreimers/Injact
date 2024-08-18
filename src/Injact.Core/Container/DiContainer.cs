@@ -421,15 +421,28 @@ public class DiContainer
         //TODO: Validate args against constructor parameters and warn when there are mismatches
         var typedArgs = args.ToDictionary(s => s.GetType(), s => s);
         var typedArgsWithInterfaces = typedArgs.ToDictionary(s => s.Key, s => s.Value);
+        var ignoredInterfaces = new List<Type>();
 
         Guard.Against.Condition(args.Length != typedArgs.Count, "Cannot pass duplicate argument types to create method!");
 
         foreach (var type in typedArgs)
         {
-            //TODO: Not sure this will be very performant, try to find a better way
-            //TODO: Should also probably validate that there are no duplicate interfaces
             foreach (var implemented in type.Key.GetInterfaces())
             {
+                if (ignoredInterfaces.Contains(implemented))
+                {
+                    continue;
+                }
+
+                if (typedArgsWithInterfaces.ContainsKey(implemented))
+                {
+                    typedArgsWithInterfaces.Remove(implemented);
+                    ignoredInterfaces.Add(implemented);
+                    _logger.LogWarning($"Two or more provided arguments implement {implemented.Name}. This interface will be ignored.");
+
+                    continue;
+                }
+
                 typedArgsWithInterfaces.Add(implemented, type.Value);
             }
         }
