@@ -3,8 +3,9 @@
 public struct Mathf
 {
     public const float PI = 3.1415927f;
+    public const float FloatComparisonError = 9.999999439624929E-11f;
 
-    public static float Sqrt(float value)
+    public static float SquareRoot(float value)
     {
         return (float)Math.Sqrt(value);
     }
@@ -19,40 +20,60 @@ public struct Mathf
         return (float)Math.Round(value, digits);
     }
 
+    public static int RoundToInt(float value)
+    {
+        return (int)Math.Round(value);
+    }
+
     public static float Floor(float value)
     {
         return (float)Math.Floor(value);
     }
 
-    public static float Ceil(float value)
+    public static int FloorToInt(float value)
+    {
+        return (int)Math.Floor(value);
+    }
+
+    public static float Ceiling(float value)
     {
         return (float)Math.Ceiling(value);
     }
 
-    public static float Min(float a, float b)
+    public static int CeilingToInt(float value)
+    {
+        return (int)Math.Ceiling(value);
+    }
+
+    public static float Minimum(float a, float b)
     {
         return a < b
             ? a
             : b;
     }
-    
-    public static float Max(float a, float b)
+
+    public static float Maximum(float a, float b)
     {
         return a > b
             ? a
             : b;
     }
 
-    public static float Clamp(float value, float min, float max)
+    public static int Absolute(float value)
     {
-        if (value < min)
+        return (int)Math.Abs(value);
+    }
+
+    public static float Clamp(float value, float minimum, float maximum)
+    {
+        if (value < minimum)
         {
-            value = min;
+            value = minimum;
         }
 
-        else if (value > max)
+        else if (value > maximum)
         {
-            value = max;
+            value = maximum;
         }
 
         return value;
@@ -67,7 +88,7 @@ public struct Mathf
             _ => value
         };
     }
-    
+
     public static float Sin(float value)
     {
         return (float)Math.Sin(value);
@@ -102,8 +123,8 @@ public struct Mathf
     {
         return (float)Math.Atan2(y, x);
     }
-    
-    public static float Pow(float value, float power)
+
+    public static float Power(float value, float power)
     {
         return (float)Math.Pow(value, power);
     }

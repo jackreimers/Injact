@@ -21,7 +21,7 @@ public class Profile : IDisposable
         Stop();
     }
 
-    public void Stop()
+    private void Stop()
     {
         _stopwatch.Stop();
 

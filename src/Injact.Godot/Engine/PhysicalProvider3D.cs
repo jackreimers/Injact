@@ -1,5 +1,5 @@
-﻿using NativeVector = Injact.Vector3;
-using EngineVector = Godot.Vector3;
+﻿using NativeVector3 = Injact.Vector3;
+using EngineVector3 = Godot.Vector3;
 
 namespace Injact.Godot;
 
@@ -16,33 +16,33 @@ public class PhysicalProvider3D : IPhysicalProvider
         _node = node;
     }
 
-    public NativeVector Position
+    public NativeVector3 Position
     {
         get => _node.Position.ToNative();
         set => _node.Position = value.ToEngine();
     }
 
-    public void Translate(NativeVector translation)
+    public void Translate(NativeVector3 translation)
     {
         _node.Translate(translation.ToEngine());
     }
 
     public void Translate(float x, float y, float z)
     {
-        _node.Translate(new EngineVector(x, y, z));
+        _node.Translate(new EngineVector3(x, y, z));
     }
 
-    public void TranslateLocal(NativeVector translation)
+    public void TranslateLocal(NativeVector3 translation)
     {
         _node.TranslateObjectLocal(translation.ToEngine());
     }
 
     public void TranslateLocal(float x, float y, float z)
     {
-        _node.TranslateObjectLocal(new EngineVector(x, y, z));
+        _node.TranslateObjectLocal(new EngineVector3(x, y, z));
     }
 
-    public void Rotate(NativeVector rotation)
+    public void Rotate(NativeVector3 rotation)
     {
         _node.RotateX(rotation.X);
         _node.RotateY(rotation.Y);
@@ -56,7 +56,7 @@ public class PhysicalProvider3D : IPhysicalProvider
         _node.RotateZ(z);
     }
 
-    public NativeVector LookAt(NativeVector target)
+    public NativeVector3 LookAt(NativeVector3 target)
     {
         _node.LookAt(target.ToEngine());
         return _node.Rotation.ToNative();

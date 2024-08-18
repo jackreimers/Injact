@@ -17,7 +17,7 @@ public partial class Context : Node
     [Export] private bool logTracing = true;
 
     private DiContainer _container = null!;
-    private ContainerOptions? _options;
+    private ContainerOptions? _containerOptions;
     private Injector _injector = null!;
 
     private Node[]? nodeBuffer;
@@ -26,7 +26,7 @@ public partial class Context : Node
     public override void _EnterTree()
     {
         //Note that logging settings will not be updated at runtime
-        _container = new DiContainer(_options ?? new ContainerOptions
+        _container = new DiContainer(_containerOptions ?? new ContainerOptions
         {
             LogDebugging = logDebugging,
             LogTracing = logTracing,
@@ -66,7 +66,7 @@ public partial class Context : Node
 
     protected void SetContainerOptions(ContainerOptions options)
     {
-        _options = options;
+        _containerOptions = options;
     }
 
     protected void AddInstallers(params IInstaller[] value)

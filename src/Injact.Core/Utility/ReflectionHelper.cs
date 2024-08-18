@@ -2,6 +2,27 @@ namespace Injact;
 
 internal static class ReflectionHelper
 {
+    public static bool IsPrimitive(Type type)
+    {
+        return type.IsPrimitive || type == typeof(string) || type == typeof(decimal);
+    }
+
+    public static bool HasTypeInDependencyTree(Type type, Type dependencyType)
+    {
+        if (IsPrimitive(type) || type.IsInterface || type.IsAbstract)
+        {
+            return false;
+        }
+
+        if (type == dependencyType)
+        {
+            return true;
+        }
+
+        return GetParameters(type)
+            .Any(parameter => HasTypeInDependencyTree(parameter.ParameterType, dependencyType));
+    }
+
     public static ConstructorInfo GetConstructor(Type type)
     {
         //TODO: Should the constructor with the largest number of parameters be used instead?
@@ -28,7 +49,7 @@ internal static class ReflectionHelper
         var constructors = type.GetConstructors();
         var defaultConstructor = constructors[0];
         var defaultMatchCount = 0;
-        
+
         foreach (var constructor in constructors)
         {
             //Preference is given to the constructor with the Inject attribute
@@ -37,14 +58,14 @@ internal static class ReflectionHelper
                 defaultConstructor = constructor;
                 break;
             }
-                
+
             var parameters = constructor.GetParameters();
             var matchCount = parameters.Count(parameter => parameterTypes.Contains(parameter.ParameterType));
             if (matchCount <= defaultMatchCount)
             {
                 continue;
             }
-            
+
             defaultConstructor = constructor;
             defaultMatchCount = matchCount;
         }
@@ -65,7 +86,7 @@ internal static class ReflectionHelper
         while (true)
         {
             fields.AddRange(
-                type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly));
+                type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance));
 
             var baseType = type.BaseType;
             if (baseType == null)

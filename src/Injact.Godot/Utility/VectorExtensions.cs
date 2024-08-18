@@ -1,7 +1,6 @@
 ﻿using NativeVector2 = Injact.Vector2;
-using EngineVector2 = Godot.Vector2;
-
 using NativeVector3 = Injact.Vector3;
+using EngineVector2 = Godot.Vector2;
 using EngineVector3 = Godot.Vector3;
 
 namespace Injact.Godot;

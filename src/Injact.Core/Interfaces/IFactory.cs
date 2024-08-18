@@ -1,10 +1,21 @@
 ﻿namespace Injact;
 
-public interface IFactory<out TValue> : IFactory
+public interface IFactory<TInterface> : IFactory
 {
-    public TValue Create();
+    public TInterface Create(bool deferInitialisation = false);
 
-    public TValue Create(params object[] args);
+    public TInterface Create(params object[] args);
+
+    public TInterface Create(bool deferInitialisation, params object[] args);
+
+    public TInterface Create<TConcrete>(bool deferInitialisation = false)
+        where TConcrete : class, TInterface;
+
+    public TInterface Create<TConcrete>(params object[] args)
+        where TConcrete : class, TInterface;
+
+    public TInterface Create<TConcrete>(bool deferInitialisation, params object[] args)
+        where TConcrete : class, TInterface;
 }
 
 public interface IFactory { }
