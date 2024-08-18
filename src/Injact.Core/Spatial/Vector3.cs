@@ -86,6 +86,11 @@ public struct Vector3 : IEquatable<Vector3>, IFormattable
         return new Vector3(vector.X * amount, vector.Y * amount, vector.Z * amount);
     }
 
+    public static Vector3 operator *(Vector3 first, Vector3 second)
+    {
+        return new Vector3(first.X * second.X, first.Y * second.Y, first.Z * second.Z);
+    }
+
     public static Vector3 operator /(Vector3 vector, float amount)
     {
         return new Vector3(vector.X / amount, vector.Y / amount, vector.Z / amount);

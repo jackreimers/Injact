@@ -20,14 +20,29 @@ public struct Mathf
         return (float)Math.Round(value, digits);
     }
 
+    public static int RoundToInt(float value)
+    {
+        return (int)Math.Round(value);
+    }
+
     public static float Floor(float value)
     {
         return (float)Math.Floor(value);
     }
 
+    public static int FloorToInt(float value)
+    {
+        return (int)Math.Floor(value);
+    }
+
     public static float Ceiling(float value)
     {
         return (float)Math.Ceiling(value);
+    }
+
+    public static int CeilingToInt(float value)
+    {
+        return (int)Math.Ceiling(value);
     }
 
     public static float Minimum(float a, float b)
@@ -42,6 +57,11 @@ public struct Mathf
         return a > b
             ? a
             : b;
+    }
+
+    public static int Absolute(float value)
+    {
+        return (int)Math.Abs(value);
     }
 
     public static float Clamp(float value, float minimum, float maximum)

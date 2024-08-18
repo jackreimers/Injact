@@ -8,7 +8,7 @@ public abstract class LifecycleObject : ILifecycleObject
     public bool Enabled
     {
         get => _enabled;
-        set => OnEnabledSet(value);
+        set => OnEnabledChanged(value);
     }
 
     public event Action? OnEnableEvent;
@@ -37,12 +37,12 @@ public abstract class LifecycleObject : ILifecycleObject
         Enabled = false;
     }
 
-    protected virtual void OnEnabledSet(bool value)
+    protected virtual void OnEnabledChanged(bool value)
     {
-        OnEnabledSet(value, out _);
+        OnEnabledChanged(value, out _);
     }
 
-    protected void OnEnabledSet(bool value, out bool updated)
+    protected void OnEnabledChanged(bool value, out bool updated)
     {
         if (_enabled == value)
         {
