@@ -28,14 +28,23 @@ public static partial class Guard
             return bindingStatement;
         }
 
-        public static void CircularDependency(Instances instances, Type requestedType)
+        public static void CircularDependency(ContainerOptions containerOptions, Instances instances, Type requestedType, object[] args)
         {
             var rootParameters = ReflectionHelper.GetParameters(requestedType);
+            var argTypes = args
+                .Select(arg => arg.GetType())
+                .ToArray();
 
             foreach (var parameter in rootParameters)
             {
-                //If there is already an instance created we can assume that the dependency is not circular for that parameter
-                if (instances.ContainsKey(parameter.ParameterType))
+                //If there is already an instance created or an argument passed then we can assume that the dependency is not circular for that parameter
+                if (instances.ContainsKey(parameter.ParameterType) || argTypes.Contains(parameter.ParameterType))
+                {
+                    continue;
+                }
+
+                //If the parameter has a default value and we are not injecting into default properties then we can assume that the dependency is not circular for that parameter
+                if (!containerOptions.InjectIntoDefaultProperties && parameter.HasDefaultValue)
                 {
                     continue;
                 }

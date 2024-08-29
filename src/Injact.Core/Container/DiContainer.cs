@@ -416,7 +416,7 @@ public class DiContainer
     public object Create(Type requestedType, bool deferInitialisation, params object[] args)
     {
         Guard.Against.Condition(requestedType.IsInterface, "Cannot create an instance of an interface!");
-        Guard.Against.CircularDependency(_instances, requestedType);
+        Guard.Against.CircularDependency(_containerOptions, _instances, requestedType, args);
 
         //TODO: Validate args against constructor parameters and warn when there are mismatches
         var typedArgs = args.ToDictionary(s => s.GetType(), s => s);
@@ -449,14 +449,17 @@ public class DiContainer
 
         var constructor = ReflectionHelper.GetConstructor(requestedType, args.Select(s => s.GetType()));
         var parameterInfos = constructor.GetParameters();
-        var parameterTypes = parameterInfos
-            .Select(s => s.ParameterType)
-            .ToArray();
-
         var parameters = new List<object>();
 
-        foreach (var type in parameterTypes)
+        foreach (var parameterInfo in parameterInfos)
         {
+            if (!_containerOptions.InjectIntoDefaultProperties && parameterInfo.HasDefaultValue)
+            {
+                parameters.Add(Type.Missing);
+                continue;
+            }
+
+            var type = parameterInfo.ParameterType;
             var targetType = typedArgsWithInterfaces
                 .Where(s => s.Key.IsAssignableTo(type))
                 .Select(s => s.Value)
