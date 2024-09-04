@@ -2,6 +2,8 @@ namespace Injact;
 
 public abstract class LifecycleObject : ILifecycleObject
 {
+    //ReSharper disable once ConvertToConstant.Local
+    //This will be set to true by the dependency injection container
     private readonly bool _shouldRunUpdate = false;
     private bool _enabled;
 
