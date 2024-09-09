@@ -2,3 +2,13 @@
 global using System.Linq;
 global using System.Collections.Generic;
 global using Godot;
+global using Injact.Attributes;
+global using Injact.Container;
+global using Injact.Container.Binding;
+global using Injact.Container.Configuration;
+global using Injact.Container.Injection;
+global using Injact.Editor;
+global using Injact.Validation;
+global using Injact.Installers;
+global using Injact.Logging;
+global using Injact.Objects;

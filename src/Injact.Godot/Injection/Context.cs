@@ -1,4 +1,6 @@
-﻿namespace Injact.Godot;
+﻿using Time = Injact.Spatial.Time;
+
+namespace Injact.Godot;
 
 public partial class Context : Node
 {
@@ -13,6 +15,7 @@ public partial class Context : Node
     [Export] private NodeInstaller[] installers = Array.Empty<NodeInstaller>();
 
     [ExportCategory("Logging")]
+    [Export] private LoggingLevel loggingLevel = LoggingLevel.Information;
     [Export] private bool logDebugging = true;
     [Export] private bool logTracing = true;
 
@@ -28,7 +31,7 @@ public partial class Context : Node
         //Note that logging settings will not be updated at runtime
         _container = new DiContainer(_containerOptions ?? new ContainerOptions
         {
-            LogDebugging = logDebugging,
+            LoggingLevel = loggingLevel,
             LogTracing = logTracing,
             LoggingProvider = new LoggingProvider()
         });
@@ -46,8 +49,6 @@ public partial class Context : Node
 
             installer.InstallBindings();
         }
-
-        _container.ProcessPendingBindings();
 
         foreach (var target in injectTargets)
         {

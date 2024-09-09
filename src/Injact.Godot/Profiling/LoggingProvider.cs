@@ -2,9 +2,9 @@
 
 public class LoggingProvider : ILoggingProvider
 {
-    public ILogger GetLogger<T>()
+    public ILogger GetLogger<T>(ContainerOptions options)
     {
-        return new Logger<T>();
+        return new Logger<T>(options);
     }
 
     public Type GetLoggerType()

@@ -1,25 +1,27 @@
-﻿namespace Injact.Godot;
+﻿namespace Injact.Logging;
 
-public class Logger<T> : ILogger
+public class DefaultLogger<T> : ILogger
 {
     private readonly ContainerOptions _options;
     private readonly string _typeName;
 
-    public Logger(ContainerOptions options)
+    public DefaultLogger(ContainerOptions options)
     {
         _options = options;
 
         var typeName = typeof(T).Name;
-        _typeName = typeName is nameof(DiContainer) or nameof(Context)
+        _typeName = typeName is nameof(DiContainer)
             ? "Injact"
             : typeName;
+
+        LogWarning("DefaultLogger is being used, no messages will be logged to the game engine console!");
     }
 
     public void LogInformation(string message, bool condition = true)
     {
         if (condition && _options.LoggingLevel >= LoggingLevel.Information)
         {
-            GD.Print($"[{_typeName}] {message}");
+            Console.WriteLine($"[{_typeName}] {message}");
         }
     }
 
@@ -27,7 +29,7 @@ public class Logger<T> : ILogger
     {
         if (condition && _options.LoggingLevel >= LoggingLevel.Warning)
         {
-            GD.PushWarning($"[{_typeName}] {message}");
+            Console.WriteLine($"[{_typeName}] {message}");
         }
     }
 
@@ -35,12 +37,12 @@ public class Logger<T> : ILogger
     {
         if (condition && _options.LoggingLevel >= LoggingLevel.Error)
         {
-            GD.PushError($"[{_typeName}] {message}");
+            Console.WriteLine($"[{_typeName}] {message}");
         }
     }
 
     public void LogTrace(string message, object[] arguments)
     {
-        GD.Print($"[Trace] {string.Format(message, arguments)}");
+        Console.WriteLine($"[Trace] {string.Format(message, arguments)}");
     }
 }

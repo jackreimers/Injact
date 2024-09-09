@@ -1,4 +1,4 @@
-﻿namespace Injact;
+﻿namespace Injact.Exceptions;
 
 public class FactoryException : Exception
 {

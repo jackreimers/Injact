@@ -2,3 +2,17 @@
 global using System.Reflection;
 global using System.Diagnostics;
 global using System.Text.Json;
+global using Injact.Attributes;
+global using Injact.Container;
+global using Injact.Container.Binding;
+global using Injact.Container.Configuration;
+global using Injact.Container.Injection;
+global using Injact.Editor;
+global using Injact.Exceptions;
+global using Injact.Factories;
+global using Injact.Validation;
+global using Injact.Logging;
+global using Injact.Objects;
+global using Injact.Options;
+global using Injact.Spatial;
+global using Injact.Utilities;

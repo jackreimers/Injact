@@ -1,19 +1,38 @@
-namespace Injact;
+namespace Injact.Container;
 
-public class Bindings : Dictionary<Type, Binding> { }
+public class ObjectBindings : Dictionary<Type, ObjectBinding> { }
 
-public class Instances : Dictionary<Type, object?> { }
+public class FactoryBindings : Dictionary<Type, FactoryBinding> { }
 
-public class DiContainer
+public class DiContainer : IDiContainer
 {
+    private const string TypeAlreadyBoundErrorMessage = "Type \"{0}\" is already bound.";
+    private const string ObjectCannotBeBoundErrorMessage = "Cannot bind type \"{0}\" as factory.";
+    private const string FactoryCannotBeBoundErrorMessage = "Cannot bind factory \"{0}\" as object.";
+    private const string TwoOrMoreImplementationsErrorMessage = "\"{0}\" is implemented by two or more provided arguments and will be ignored.";
+    private const string DuplicateArgumentTypesErrorMessage = "Cannot pass duplicate argument types to create method.";
+
+    private const string ResolveFailedForTypeErrorMessage = "Failed to resolve type \"{0}\".";
+    private const string CreateFailedErrorMessage = "Failed to create type \"{0}\".";
+    private const string CannotCreateInterfaceInstanceErrorMessage = "Cannot create an instance of an interface.";
+
+    private const string JsonNoFileFoundErrorMessage = "No JSON file found at \"{0}\".";
+    private const string JsonNoSectionFoundErrorMessage = "Section \"{0}\" not found in JSON file.";
+    private const string JsonNoOptionsFoundForSectionErrorMessage = "No options found for section \"{0}\".";
+    private const string JsonNoOptionsLoadedForSectionErrorMessage = "Failed to load options for section \"{0}\".";
+
+    private const string ImmediateBindingWasCreatedMessage = "Immediate binding for type \"{0}\" was created.";
+
     private readonly ILogger _logger;
     private readonly IProfiler _profiler;
     private readonly ContainerOptions _containerOptions;
-    private readonly Bindings _bindings = new();
-    private readonly Instances _instances = new();
-    private readonly Queue<IBindingStatement> _pendingBindings = new();
+    private readonly Injector _injector;
+    private readonly Validator _validator;
+    private readonly ObjectBindings _objectBindings = new();
+    private readonly ObjectBindings _deferredBindings = new();
+    private readonly FactoryBindings _factoryBindings = new();
 
-    private Injector injector = null!;
+    private bool isCheckingImmediateBindings;
 
     /// <summary>
     /// Create a new instance of the dependency injection container.
@@ -27,47 +46,161 @@ public class DiContainer
     /// <param name="containerOptions">Settings to control container features.</param>
     public DiContainer(ContainerOptions containerOptions)
     {
-        _logger = containerOptions.LoggingProvider.GetLogger<DiContainer>();
+        _logger = containerOptions.LoggingProvider.GetLogger<DiContainer>(containerOptions);
         _profiler = new Profiler(_logger);
         _containerOptions = containerOptions;
-
-        InstallDefaultBindings();
-    }
-
-    private void InstallDefaultBindings()
-    {
-        injector = new Injector(this);
+        _injector = new Injector(this);
+        _validator = new Validator(
+            _logger,
+            _containerOptions,
+            _objectBindings,
+            _factoryBindings);
 
         Bind<DiContainer>()
-            .FromInstance(this)
-            .AsSingleton()
-            .Finalise();
+            .FromInstance(this);
 
         Bind<Injector>()
-            .FromInstance(injector)
-            .AsSingleton()
-            .Finalise();
+            .FromInstance(_injector);
 
         Bind<EditorValueMapper>()
-            .AsSingleton()
-            .Finalise();
+            .AsSingleton();
 
         Bind<IProfiler>()
-            .FromInstance(_profiler)
-            .AsSingleton()
-            .Finalise();
+            .FromInstance(_profiler);
 
-        ProcessPendingBindings();
-        _logger.LogInformation("Dependency injection container initialised.", _containerOptions.LogDebugging);
+        _logger.LogInformation("Dependency injection container initialised.");
     }
 
-    /// <summary>
-    /// Add options from a JSON file to the container.
-    /// </summary>
-    /// <param name="section">The name of the section in the JSON file.</param>
-    /// <param name="path">The JSON file path relative to the project root.</param>
-    /// <typeparam name="T">The options object to deserialise into.</typeparam>
-    /// <remarks>Method will search for appsettings.json in the project root if path is null.</remarks>
+    /// <inheritdoc/>
+    public ObjectBindingBuilder Bind<TConcrete>()
+        where TConcrete : class
+    {
+        return BindObjectInternal<TConcrete, TConcrete>();
+    }
+
+    /// <inheritdoc/>
+    public ObjectBindingBuilder Bind<TInterface, TConcrete>()
+        where TConcrete : class, TInterface
+    {
+        return BindObjectInternal<TInterface, TConcrete>();
+    }
+
+    /// <inheritdoc/>
+    public FactoryBindingBuilder BindFactory<TFactory, TObject>()
+        where TFactory : IFactory
+    {
+        return BindFactoryInternal<TFactory, TFactory, TObject>();
+    }
+
+    /// <inheritdoc/>
+    public FactoryBindingBuilder BindFactory<TInterface, TFactory, TObject>()
+        where TInterface : IFactory
+        where TFactory : TInterface
+    {
+        return BindFactoryInternal<TInterface, TFactory, TObject>();
+    }
+
+    /// <inheritdoc/>
+    public TInterface Resolve<TInterface>(Type requestingType)
+        where TInterface : class
+    {
+        var resolved = ResolveInternal<TInterface>(typeof(TInterface), requestingType);
+        if (resolved == null)
+        {
+            throw new DependencyException(string.Format(ResolveFailedForTypeErrorMessage, typeof(TInterface)));
+        }
+
+        return resolved;
+    }
+
+    /// <inheritdoc/>
+    public TInterface? Resolve<TInterface>(Type requestingType, bool throwOnNotFound)
+        where TInterface : class
+    {
+        var resolved = ResolveInternal<TInterface>(typeof(TInterface), requestingType);
+        if (resolved == null && throwOnNotFound)
+        {
+            throw new DependencyException(string.Format(ResolveFailedForTypeErrorMessage, typeof(TInterface)));
+        }
+
+        return resolved;
+    }
+
+    /// <inheritdoc/>
+    public TInterface Resolve<TInterface>(object requestingObject)
+        where TInterface : class
+    {
+        var resolved = ResolveInternal<TInterface>(typeof(TInterface), requestingObject.GetType());
+        if (resolved == null)
+        {
+            throw new DependencyException(string.Format(ResolveFailedForTypeErrorMessage, typeof(TInterface)));
+        }
+
+        return resolved;
+    }
+
+    /// <inheritdoc/>
+    public TInterface? Resolve<TInterface>(object requestingObject, bool throwOnNotFound)
+        where TInterface : class
+    {
+        var resolved = ResolveInternal<TInterface>(typeof(TInterface), requestingObject.GetType());
+        if (resolved == null && throwOnNotFound)
+        {
+            throw new DependencyException(string.Format(ResolveFailedForTypeErrorMessage, typeof(TInterface)));
+        }
+
+        return resolved;
+    }
+
+    /// <inheritdoc/>
+    public object Resolve(Type requestedType, Type requestingType)
+    {
+        var resolved = ResolveInternal<object>(requestedType, requestingType);
+        if (resolved == null)
+        {
+            throw new DependencyException(string.Format(ResolveFailedForTypeErrorMessage, requestedType));
+        }
+
+        return resolved;
+    }
+
+    /// <inheritdoc/>
+    public object? Resolve(Type requestedType, Type requestingType, bool throwOnNotFound)
+    {
+        var resolved = ResolveInternal<object>(requestedType, requestingType);
+        if (resolved == null && throwOnNotFound)
+        {
+            throw new DependencyException(string.Format(ResolveFailedForTypeErrorMessage, requestedType));
+        }
+
+        return resolved;
+    }
+
+    /// <inheritdoc/>
+    public object Resolve(Type requestedType, object requestingObject)
+    {
+        var resolved = ResolveInternal<object>(requestedType, requestingObject.GetType());
+        if (resolved == null)
+        {
+            throw new DependencyException(string.Format(ResolveFailedForTypeErrorMessage, requestedType));
+        }
+
+        return resolved;
+    }
+
+    /// <inheritdoc/>
+    public object? Resolve(Type requestedType, object requestingObject, bool throwOnNotFound)
+    {
+        var resolved = ResolveInternal<object>(requestedType, requestingObject.GetType());
+        if (resolved == null && throwOnNotFound)
+        {
+            throw new DependencyException(string.Format(ResolveFailedForTypeErrorMessage, requestedType));
+        }
+
+        return resolved;
+    }
+
+    /// <inheritdoc/>
     public void AddOptions<T>(string? section = null, string? path = null)
     {
         var workingDirectory = Environment.CurrentDirectory;
@@ -77,7 +210,7 @@ public class DiContainer
 
         if (!File.Exists(appsettingsPath))
         {
-            throw new OptionsExeption($"No JSON file found at \"{appsettingsPath}\".");
+            throw new OptionsExeption(string.Format(JsonNoFileFoundErrorMessage, appsettingsPath));
         }
 
         try
@@ -89,12 +222,11 @@ public class DiContainer
             if (section != null)
             {
                 var properties = section.Split(':');
-
                 foreach (var property in properties)
                 {
                     if (!value.TryGetProperty(property, out var next))
                     {
-                        throw new OptionsExeption($"Section \"{section}\" not found in JSON file.");
+                        throw new OptionsExeption(string.Format(JsonNoSectionFoundErrorMessage, section));
                     }
 
                     value = next;
@@ -105,373 +237,255 @@ public class DiContainer
             var options = value.Deserialize<T>();
             if (options == null)
             {
-                throw new OptionsExeption($"No options found for section \"{section}\".");
+                throw new OptionsExeption(string.Format(JsonNoOptionsFoundForSectionErrorMessage, section));
             }
 
             Bind<IOptions<T>>()
                 .FromInstance(new Options<T>(options))
-                .AsSingleton()
-                .Finalise();
-
-            ProcessPendingBindings();
+                .AsSingleton();
         }
 
         catch (Exception exception)
         {
-            throw new OptionsExeption($"Failed to load options for section \"{section}\".\n{exception.Message}");
+            throw new OptionsExeption(
+                string.Format(JsonNoOptionsLoadedForSectionErrorMessage, section),
+                exception);
         }
     }
 
-    /// <summary>
-    /// Create a binding using a concrete type.
-    /// </summary>
-    /// <typeparam name="TConcrete">The type of the object being bound.</typeparam>
-    public ObjectBindingBuilder Bind<TConcrete>()
-        where TConcrete : class
+    /// <inheritdoc/>
+    public object Create(Type requestedType, bool deferInitialisation = false)
     {
-        return BindInternal<TConcrete, TConcrete>();
+        return CreateInternal(requestedType, deferInitialisation, Array.Empty<object>())
+               ?? throw new DependencyException(string.Format(CreateFailedErrorMessage, requestedType.Name));
     }
 
-    /// <summary>
-    /// Create a binding using an interface.
-    /// </summary>
-    /// <typeparam name="TInterface">The interface the object is being bound as.</typeparam>
-    /// <typeparam name="TConcrete">The concrete type of the object being bound.</typeparam>
-    public ObjectBindingBuilder Bind<TInterface, TConcrete>()
+    /// <inheritdoc/>
+    public object Create(Type requestedType, params object[] arguments)
+    {
+        return CreateInternal(requestedType, false, arguments)
+               ?? throw new DependencyException(string.Format(CreateFailedErrorMessage, requestedType.Name));
+    }
+
+    /// <inheritdoc/>
+    public object Create(Type requestedType, bool deferInitialisation, params object[] arguments)
+    {
+        return CreateInternal(requestedType, deferInitialisation, arguments)
+               ?? throw new DependencyException(string.Format(CreateFailedErrorMessage, requestedType.Name));
+    }
+
+    private ObjectBindingBuilder BindObjectInternal<TInterface, TConcrete>()
         where TConcrete : class, TInterface
     {
-        return BindInternal<TInterface, TConcrete>();
-    }
+        Guard.Against.Condition(
+            _objectBindings.ContainsKey(typeof(TInterface)),
+            string.Format(TypeAlreadyBoundErrorMessage, typeof(TInterface)));
 
-    private ObjectBindingBuilder BindInternal<TInterface, TConcrete>()
-        where TConcrete : class, TInterface
-    {
-        Guard.Against.Assignable<TInterface, IFactory>("Cannot bind factory as object!");
-        Guard.Against.Assignable<TConcrete, IFactory>("Cannot bind factory as object!");
+        Guard.Against.Assignable<TInterface, IFactory>(
+            string.Format(FactoryCannotBeBoundErrorMessage, typeof(TInterface)));
 
-        return new ObjectBindingBuilder(BindCallback).WithType<TInterface, TConcrete>();
-    }
+        Guard.Against.Assignable<TConcrete, IFactory>(
+            string.Format(ObjectCannotBeBoundErrorMessage, typeof(TConcrete)));
 
-    /// <summary>
-    /// Create a factory binding using a concrete type.
-    /// </summary>
-    /// <typeparam name="TFactory">The type of the factory being bound.</typeparam>
-    /// <typeparam name="TObject">The type of object the factory creates.</typeparam>
-    public FactoryBindingBuilder BindFactory<TFactory, TObject>()
-        where TFactory : IFactory
-    {
-        return BindFactoryInternal<TFactory, TFactory, TObject>();
-    }
+        var binding = new ObjectBinding(typeof(TInterface), typeof(TConcrete));
+        _objectBindings.Add(typeof(TInterface), binding);
 
-    /// <summary>
-    /// Create a factory binding using an interface.
-    /// </summary>
-    /// <typeparam name="TInterface">The interface the factory is being bound as.</typeparam>
-    /// <typeparam name="TFactory">The type of the factory being bound.</typeparam>
-    /// <typeparam name="TObject">The type of object the factory creates.</typeparam>
-    /// <returns></returns>
-    public FactoryBindingBuilder BindFactory<TInterface, TFactory, TObject>()
-        where TInterface : IFactory
-        where TFactory : TInterface
-    {
-        return BindFactoryInternal<TInterface, TFactory, TObject>();
+        foreach (var deferred in _deferredBindings)
+        {
+            _objectBindings.Add(deferred.Key, deferred.Value);
+        }
+
+        _deferredBindings.Clear();
+        return new ObjectBindingBuilder(binding);
     }
 
     private FactoryBindingBuilder BindFactoryInternal<TInterface, TFactory, TObject>()
         where TInterface : IFactory
         where TFactory : TInterface
     {
-        Guard.Against.Condition(_bindings.ContainsKey(typeof(TInterface)), $"Type {typeof(TInterface)} already bound!");
-        Guard.Against.Condition(_bindings.ContainsKey(typeof(TFactory)), $"Type {typeof(TFactory)} already bound!");
+        Guard.Against.Condition(
+            _factoryBindings.ContainsKey(typeof(TInterface)),
+            string.Format(TypeAlreadyBoundErrorMessage, typeof(TInterface)));
 
-        return new FactoryBindingBuilder(BindCallback).WithType<TInterface, TFactory, TObject>();
+        Guard.Against.Condition(
+            _factoryBindings.ContainsKey(typeof(TInterface)),
+            string.Format(TypeAlreadyBoundErrorMessage, typeof(TInterface)));
+
+        Guard.Against.Condition(
+            _factoryBindings.ContainsKey(typeof(TFactory)),
+            string.Format(TypeAlreadyBoundErrorMessage, typeof(TFactory)));
+
+        var binding = new FactoryBinding(typeof(TInterface), typeof(TFactory), typeof(TObject));
+
+        _factoryBindings.Add(typeof(TInterface), binding);
+        return new FactoryBindingBuilder(binding);
     }
 
-    private void BindCallback(IBindingStatement statement)
+    private TInterface? ResolveInternal<TInterface>(Type requestedType, Type requestingType)
+        where TInterface : class
     {
-        _pendingBindings.Enqueue(statement);
+        Guard.Against.CircularInjection(
+            _containerOptions,
+            _objectBindings,
+            requestedType,
+            Array.Empty<object>());
+
+        return !requestedType.IsAssignableTo(typeof(IFactory))
+            ? ResolveObject<TInterface>(requestedType, requestingType)
+            : ResolveFactory<TInterface>(requestedType, requestingType);
     }
 
-    /// <summary>
-    /// Create bindings for all pending binding statements.
-    /// </summary>
-    public void ProcessPendingBindings()
+    private TInterface? ResolveObject<TInterface>(Type requestedType, Type requestingType)
+        where TInterface : class
     {
-        if (_pendingBindings.Count == 0)
+        OnResolve();
+
+        if (requestedType.IsAssignableTo(typeof(ILogger)))
+        {
+            var loggerType = _containerOptions.LoggingProvider
+                .GetLoggerType()
+                .MakeGenericType(requestingType);
+
+            if (_objectBindings.TryGetValue(loggerType, out var loggerBinding))
+            {
+                return loggerBinding.Instance as TInterface;
+            }
+
+            var constructor = loggerType
+                .GetConstructors()
+                .FirstOrDefault();
+
+            var instance = Guard.Against.Null(constructor?.Invoke(new object[] { _containerOptions }));
+            var newBinding = new ObjectBinding(loggerType, loggerType, instance);
+
+            newBinding.Lock();
+            _objectBindings.Add(loggerType, newBinding);
+
+            return Guard.Against.Null(instance as TInterface);
+        }
+
+        if (_objectBindings.TryGetValue(requestedType, out var binding))
+        {
+            Guard.Against.IllegalInjection(binding, requestingType);
+
+            if (binding.Instance != null)
+            {
+                return Guard.Against.Null(binding.Instance as TInterface);
+            }
+
+            var created = CreateInternal(binding.ConcreteType, false);
+            if (created == null)
+            {
+                return default;
+            }
+
+            if (binding.IsSingleton)
+            {
+                binding.Instance = created;
+            }
+
+            return Guard.Against.Null(created as TInterface);
+        }
+
+        return default;
+    }
+
+    private TInterface? ResolveFactory<TInterface>(Type requestedType, Type requestingType)
+        where TInterface : class
+    {
+        _factoryBindings.TryGetValue(requestedType, out var factoryBinding);
+
+        if (_containerOptions.UseAutoFactories && factoryBinding == null)
+        {
+            var type = requestedType
+                .GetGenericArguments()
+                .First();
+
+            var factoryType = typeof(Factory<>).MakeGenericType(type);
+            return Guard.Against.Null(Create(factoryType) as TInterface);
+        }
+
+        if (factoryBinding == null)
+        {
+            return default;
+        }
+
+        Guard.Against.IllegalInjection(factoryBinding, requestingType);
+        return Guard.Against.Null(Create(factoryBinding.ConcreteType) as TInterface);
+    }
+
+    private void OnResolve()
+    {
+        if (isCheckingImmediateBindings)
         {
             return;
         }
 
-        var pendingInstances = new List<ObjectBindingStatement>();
-        var pendingInjections = new List<object>();
+        isCheckingImmediateBindings = true;
+        var immediateBindings = _objectBindings.Where(s => s.Value is { IsImmediate: true, IsLocked: false });
 
-        while (_pendingBindings.Count > 0)
+        foreach (var binding in immediateBindings)
         {
-            var bindingStatement = _pendingBindings.Dequeue();
-            var binding = new Binding(bindingStatement.ConcreteType, bindingStatement.AllowedInjectionTypes);
-
-            try
-            {
-                if (bindingStatement.Flags.HasFlag(StatementFlags.Factory))
-                {
-                    var factoryBindingStatement = Guard.Against.InvalidFactoryBindingStatement(bindingStatement);
-                    _bindings.Add(factoryBindingStatement.InterfaceType, binding);
-                }
-
-                else
-                {
-                    var objectBindingStatement = Guard.Against.InvalidObjectBindingStatement(bindingStatement);
-                    _bindings.Add(bindingStatement.InterfaceType, binding);
-
-                    if (!objectBindingStatement.Flags.HasFlag(StatementFlags.Singleton))
-                    {
-                        continue;
-                    }
-
-                    if (objectBindingStatement.Instance != null)
-                    {
-                        pendingInjections.Add(objectBindingStatement.Instance);
-                    }
-
-                    else if (objectBindingStatement.Flags.HasFlag(StatementFlags.Immediate))
-                    {
-                        pendingInstances.Add(objectBindingStatement);
-                    }
-
-                    _instances.Add(
-                        objectBindingStatement.InterfaceType,
-                        objectBindingStatement.Instance
-                    );
-                }
-            }
-
-            catch (ArgumentException exception)
-            {
-                throw new DependencyException($"Binding already exists for {bindingStatement.InterfaceType}!", exception);
-            }
+            TryProcessImmediateObjectBinding(binding.Value);
         }
 
-        //Perform creation after all bindings have been processed to prevent immediate bindings from requesting unbound dependencies
-        foreach (var pending in pendingInstances)
+        isCheckingImmediateBindings = false;
+    }
+
+    private void TryProcessImmediateObjectBinding(ObjectBinding binding)
+    {
+        var canCreateObject = _validator.CanCreate(binding.ConcreteType);
+        if (!canCreateObject)
         {
-            //Check instance hasn't already been created by another object requesting it
-            if (_instances[pending.InterfaceType] != null)
+            _objectBindings.Remove(binding.InterfaceType);
+            _deferredBindings.Add(binding.InterfaceType, binding);
+
+            return;
+        }
+
+        var created = CreateInternal(binding.ConcreteType, false);
+        if (created == null)
+        {
+            _objectBindings.Remove(binding.InterfaceType);
+            _deferredBindings.Add(binding.InterfaceType, binding);
+
+            return;
+        }
+
+        binding.Instance = created;
+        _logger.LogInformation(string.Format(ImmediateBindingWasCreatedMessage, binding.InterfaceType));
+    }
+
+    private object? CreateInternal(Type requestedType, bool deferInitialisation, params object[] arguments)
+    {
+        Guard.Against.Condition(requestedType.IsInterface, CannotCreateInterfaceInstanceErrorMessage);
+        Guard.Against.CircularInjection(_containerOptions, _objectBindings, requestedType, arguments);
+
+        if (!_validator.CanCreate(requestedType))
+        {
+            return null;
+        }
+
+        var argumentResult = ValidateCreationArguments(requestedType, arguments);
+        var missingParameters = argumentResult.Parameters.Where(s => s.Value == null).ToArray();
+
+        foreach (var parameter in missingParameters)
+        {
+            var dependencyResult = _validator.CanCreate(parameter.Key.ParameterType);
+            if (!dependencyResult)
             {
-                continue;
+                return null;
             }
 
-            _instances[pending.InterfaceType] = Create(pending.ConcreteType);
+            argumentResult.Parameters[parameter.Key] = Resolve(parameter.Key.ParameterType, this);
         }
 
-        injector.InjectInto(pendingInjections);
-    }
+        var argumentValues = argumentResult.Parameters.Values.ToArray();
+        var constructed = argumentResult.Constructor.Invoke(argumentValues);
 
-    public TInterface Resolve<TInterface>(Type requestingType)
-    {
-        return ResolveInternal<TInterface>(typeof(TInterface), requestingType, true)!;
-    }
+        _injector.InjectInto(constructed);
 
-    public TInterface? Resolve<TInterface>(Type requestingType, bool throwOnNotFound)
-    {
-        return ResolveInternal<TInterface>(typeof(TInterface), requestingType, throwOnNotFound);
-    }
-
-    public TInterface Resolve<TInterface>(object requestingObject)
-    {
-        return ResolveInternal<TInterface>(typeof(TInterface), requestingObject.GetType(), true)!;
-    }
-
-    public TInterface? Resolve<TInterface>(object requestingObject, bool throwOnNotFound)
-    {
-        return ResolveInternal<TInterface>(typeof(TInterface), requestingObject.GetType(), throwOnNotFound);
-    }
-
-    public object Resolve(Type requestedType, Type requestingType)
-    {
-        return ResolveInternal<object>(requestedType, requestingType, true)!;
-    }
-
-    public object? Resolve(Type requestedType, Type requestingType, bool throwOnNotFound)
-    {
-        return ResolveInternal<object>(requestedType, requestingType, throwOnNotFound);
-    }
-
-    public object Resolve(Type requestedType, object requestingObject)
-    {
-        return ResolveInternal<object>(requestedType, requestingObject.GetType(), true)!;
-    }
-
-    public object? Resolve(Type requestedType, object requestingObject, bool throwOnNotFound)
-    {
-        return ResolveInternal<object>(requestedType, requestingObject.GetType(), throwOnNotFound);
-    }
-
-    private TInterface? ResolveInternal<TInterface>(Type requestedType, Type requestingType, bool throwOnNotFound)
-    {
-        if (requestedType.IsAssignableTo(typeof(ILogger)))
-        {
-            return ResolveLogger<TInterface>(requestingType);
-        }
-
-        try
-        {
-            if (requestedType.IsAssignableTo(typeof(IFactory)) && _containerOptions.UseAutoFactories && !_bindings.ContainsKey(requestedType))
-            {
-                return ResolveFactory<TInterface>(requestedType);
-            }
-
-            Guard.Against.IllegalInjection(_bindings, requestedType, requestingType);
-            Guard.Against.Condition(!_bindings.ContainsKey(requestedType), $"Type {requestedType} not bound!");
-
-            var binding = _bindings[requestedType];
-
-            var isSingleton = _instances.TryGetValue(requestedType, out var instance);
-            if (!isSingleton)
-            {
-                return (TInterface)Create(binding.ConcreteType);
-            }
-
-            if (instance != null)
-            {
-                return (TInterface)instance;
-            }
-
-            var constructed = Create(binding.ConcreteType);
-            _instances[binding.ConcreteType] = constructed;
-
-            return (TInterface)constructed;
-        }
-
-        catch (DependencyException)
-        {
-            if (throwOnNotFound)
-            {
-                throw;
-            }
-
-            return default;
-        }
-    }
-
-    private TInterface ResolveLogger<TInterface>(Type requestingType)
-    {
-        var constructed = _containerOptions.LoggingProvider.GetLoggerType().MakeGenericType(requestingType);
-        var constructor = constructed.GetConstructors().FirstOrDefault();
-
-        var hasInstance = _instances.TryGetValue(constructed, out var instance);
-        if (hasInstance && instance != null)
-        {
-            return (TInterface)instance;
-        }
-
-        instance = Guard.Against.Null(constructor?.Invoke(null));
-        _instances.Add(constructed, instance);
-
-        return (TInterface)instance;
-    }
-
-    private TInterface ResolveFactory<TInterface>(Type requestedType)
-    {
-        if (!_containerOptions.UseAutoFactories)
-        {
-            Guard.Against.Condition(!_bindings.ContainsKey(requestedType), $"Type {requestedType} not bound!");
-        }
-
-        //TODO: This is not performing any caching, should probably do that
-        var type = requestedType.GetGenericArguments().First();
-        var factoryType = typeof(Factory<>).MakeGenericType(type);
-
-        return (TInterface)Create(factoryType);
-    }
-
-    /// <summary>
-    /// Create a new instance of a type.
-    /// </summary>
-    /// <param name="requestedType">The type to be created.</param>
-    /// <param name="deferInitialisation">If true and the object implements <see cref="ILifecycleObject"/>, the container will not call Awake or Start.</param>
-    /// <remarks>It's recommended to use a factory instead of calling this method directly.</remarks>
-    public object Create(Type requestedType, bool deferInitialisation)
-    {
-        return Create(requestedType, deferInitialisation, Array.Empty<object>());
-    }
-
-    /// <summary>
-    /// Create a new instance of a type.
-    /// </summary>
-    /// <param name="requestedType">The type to be created.</param>
-    /// <param name="args">Arguments to be passed to the constructor of the created object.</param>
-    /// <remarks>It's recommended to use a factory instead of calling this method directly.</remarks>
-    public object Create(Type requestedType, params object[] args)
-    {
-        return Create(requestedType, false, args);
-    }
-
-    /// <summary>
-    /// Create a new instance of a type.
-    /// </summary>
-    /// <param name="requestedType">The type to be created.</param>
-    /// <param name="deferInitialisation">If true and the object implements <see cref="ILifecycleObject"/>, the container will not call Awake, Start or Enable.</param>
-    /// <param name="args">Arguments to be passed to the constructor of the created object.</param>
-    /// <remarks>It's recommended to use a factory instead of calling this method directly.</remarks>
-    public object Create(Type requestedType, bool deferInitialisation, params object[] args)
-    {
-        Guard.Against.Condition(requestedType.IsInterface, "Cannot create an instance of an interface!");
-        Guard.Against.CircularDependency(_containerOptions, _instances, requestedType, args);
-
-        //TODO: Validate args against constructor parameters and warn when there are mismatches
-        var typedArgs = args.ToDictionary(s => s.GetType(), s => s);
-        var typedArgsWithInterfaces = typedArgs.ToDictionary(s => s.Key, s => s.Value);
-        var ignoredInterfaces = new List<Type>();
-
-        Guard.Against.Condition(args.Length != typedArgs.Count, "Cannot pass duplicate argument types to create method!");
-
-        foreach (var type in typedArgs)
-        {
-            foreach (var implemented in type.Key.GetInterfaces())
-            {
-                if (ignoredInterfaces.Contains(implemented))
-                {
-                    continue;
-                }
-
-                if (typedArgsWithInterfaces.ContainsKey(implemented))
-                {
-                    typedArgsWithInterfaces.Remove(implemented);
-                    ignoredInterfaces.Add(implemented);
-                    _logger.LogWarning($"Two or more provided arguments implement {implemented.Name}. This interface will be ignored.");
-
-                    continue;
-                }
-
-                typedArgsWithInterfaces.Add(implemented, type.Value);
-            }
-        }
-
-        var constructor = ReflectionHelper.GetConstructor(requestedType, args.Select(s => s.GetType()));
-        var parameterInfos = constructor.GetParameters();
-        var parameters = new List<object>();
-
-        foreach (var parameterInfo in parameterInfos)
-        {
-            if (!_containerOptions.InjectIntoDefaultProperties && parameterInfo.HasDefaultValue)
-            {
-                parameters.Add(Type.Missing);
-                continue;
-            }
-
-            var type = parameterInfo.ParameterType;
-            var targetType = typedArgsWithInterfaces
-                .Where(s => s.Key.IsAssignableTo(type))
-                .Select(s => s.Value)
-                .FirstOrDefault();
-
-            parameters.Add(targetType ?? Resolve(type, requestedType));
-        }
-
-        var constructed = constructor.Invoke(parameters.ToArray());
-        injector.InjectInto(constructed);
-
-        if (constructed is not LifecycleObject lifecycleObject)
+        if (constructed is not ILifecycleObject lifecycleObject)
         {
             return constructed;
         }
@@ -481,8 +495,11 @@ public class DiContainer
         var updateMethod = Guard.Against.Null(requestedType.GetMethod("Update"));
         if (updateMethod.DeclaringType != lifecycleType)
         {
-            var property = Guard.Against.Null(lifecycleType.GetField("_shouldRunUpdate", BindingFlags.NonPublic | BindingFlags.Instance));
-            property.SetValue(constructed, true);
+            var property = lifecycleType.GetField("_shouldRunUpdate", BindingFlags.NonPublic | BindingFlags.Instance);
+            if (property != null)
+            {
+                property.SetValue(constructed, true);
+            }
         }
 
         if (deferInitialisation)
@@ -496,4 +513,66 @@ public class DiContainer
 
         return lifecycleObject;
     }
+
+    private ArgumentCheckResult ValidateCreationArguments(Type requestedType, params object[] arguments)
+    {
+        var typedArguments = arguments.ToDictionary(s => s.GetType(), s => s);
+        var typedArgumentsWithInterfaces = typedArguments.ToDictionary(s => s.Key, s => s.Value);
+        var ignoredInterfaces = new List<Type>();
+
+        Guard.Against.Condition(
+            arguments.Length != typedArguments.Count,
+            DuplicateArgumentTypesErrorMessage);
+
+        foreach (var type in typedArguments)
+        {
+            //Check for duplicate interface implementations and exclude them from injection
+            foreach (var implemented in type.Key.GetInterfaces())
+            {
+                if (ignoredInterfaces.Contains(implemented))
+                {
+                    continue;
+                }
+
+                if (typedArgumentsWithInterfaces.ContainsKey(implemented))
+                {
+                    _logger.LogInformation(string.Format(TwoOrMoreImplementationsErrorMessage, implemented.Name));
+
+                    typedArgumentsWithInterfaces.Remove(implemented);
+                    ignoredInterfaces.Add(implemented);
+
+                    continue;
+                }
+
+                typedArgumentsWithInterfaces.Add(implemented, type.Value);
+            }
+        }
+
+        var constructor = Guard.Against.Null(
+            ReflectionHelpers.GetConstructor(requestedType, arguments.Select(s => s.GetType())));
+
+        var parameterInfos = constructor.GetParameters();
+        var parameters = new Dictionary<ParameterInfo, object?>();
+
+        foreach (var parameterInfo in parameterInfos)
+        {
+            if (!_containerOptions.InjectIntoDefaultProperties && parameterInfo.HasDefaultValue)
+            {
+                parameters.Add(parameterInfo, Type.Missing);
+                continue;
+            }
+
+            var type = parameterInfo.ParameterType;
+            var targetType = typedArgumentsWithInterfaces
+                .Where(s => s.Key.IsAssignableTo(type))
+                .Select(s => s.Value)
+                .FirstOrDefault();
+
+            parameters.Add(parameterInfo, targetType);
+        }
+
+        return new ArgumentCheckResult(constructor, parameters);
+    }
+
+    private record ArgumentCheckResult(ConstructorInfo Constructor, Dictionary<ParameterInfo, object?> Parameters);
 }

@@ -7,19 +7,9 @@ public class TestsInjection
     {
         var container = new DiContainer();
 
-        container
-            .Bind<Interface1, Class1>()
-            .Finalise();
-
-        container
-            .Bind<Class2>()
-            .Finalise();
-
-        container
-            .Bind<ConstructorInjection>()
-            .Finalise();
-
-        container.ProcessPendingBindings();
+        container.Bind<Interface1, Class1>();
+        container.Bind<Class2>();
+        container.Bind<ConstructorInjection>();
 
         var resolved = container.Resolve<ConstructorInjection>(typeof(Consumer));
 
@@ -33,15 +23,8 @@ public class TestsInjection
     {
         var container = new DiContainer();
 
-        container
-            .Bind<Class2>()
-            .Finalise();
-
-        container
-            .Bind<Interface1, Class1>()
-            .Finalise();
-
-        container.ProcessPendingBindings();
+        container.Bind<Class2>();
+        container.Bind<Interface1, Class1>();
 
         var instance = new InjectionFieldReadonlyPublic();
         var injector = container.Resolve<Injector>(typeof(Consumer));
@@ -59,15 +42,8 @@ public class TestsInjection
     {
         var container = new DiContainer();
 
-        container
-            .Bind<Class2>()
-            .Finalise();
-
-        container
-            .Bind<Interface1, Class1>()
-            .Finalise();
-
-        container.ProcessPendingBindings();
+        container.Bind<Class2>();
+        container.Bind<Interface1, Class1>();
 
         var instance = new InjectionFieldReadonlyProtected();
         var injector = container.Resolve<Injector>(typeof(Consumer));
@@ -85,15 +61,8 @@ public class TestsInjection
     {
         var container = new DiContainer();
 
-        container
-            .Bind<Class2>()
-            .Finalise();
-
-        container
-            .Bind<Interface1, Class1>()
-            .Finalise();
-
-        container.ProcessPendingBindings();
+        container.Bind<Class2>();
+        container.Bind<Interface1, Class1>();
 
         var instance = new InjectionFieldReadonlyPrivate();
         var injector = container.Resolve<Injector>(typeof(Consumer));
@@ -111,18 +80,10 @@ public class TestsInjection
     {
         //Note: Property injection works by setting the value of the backing field
         //If it works on one property it will work on all of them regardless of access modifier or if there is a setter
-
         var container = new DiContainer();
 
-        container
-            .Bind<Class2>()
-            .Finalise();
-
-        container
-            .Bind<Interface1, Class1>()
-            .Finalise();
-
-        container.ProcessPendingBindings();
+        container.Bind<Class2>();
+        container.Bind<Interface1, Class1>();
 
         var instance = new InjectionPropertyPublic();
         var injector = container.Resolve<Injector>(typeof(Consumer));
@@ -140,15 +101,8 @@ public class TestsInjection
     {
         var container = new DiContainer();
 
-        container
-            .Bind<Class2>()
-            .Finalise();
-
-        container
-            .Bind<Interface1, Class1>()
-            .Finalise();
-
-        container.ProcessPendingBindings();
+        container.Bind<Class2>();
+        container.Bind<Interface1, Class1>();
 
         var instance = new InjectionMethodPublic();
         var injector = container.Resolve<Injector>(typeof(Consumer));
@@ -166,15 +120,8 @@ public class TestsInjection
     {
         var container = new DiContainer();
 
-        container
-            .Bind<Class2>()
-            .Finalise();
-
-        container
-            .Bind<Interface1, Class1>()
-            .Finalise();
-
-        container.ProcessPendingBindings();
+        container.Bind<Class2>();
+        container.Bind<Interface1, Class1>();
 
         var instance = new InjectionMethodProtected();
         var injector = container.Resolve<Injector>(typeof(Consumer));
@@ -192,15 +139,8 @@ public class TestsInjection
     {
         var container = new DiContainer();
 
-        container
-            .Bind<Class2>()
-            .Finalise();
-
-        container
-            .Bind<Interface1, Class1>()
-            .Finalise();
-
-        container.ProcessPendingBindings();
+        container.Bind<Class2>();
+        container.Bind<Interface1, Class1>();
 
         var instance = new InjectionMethodPrivate();
         var injector = container.Resolve<Injector>(typeof(Consumer));
@@ -218,16 +158,8 @@ public class TestsInjection
     {
         var container = new DiContainer();
 
-        container
-            .Bind<Interface1, Class1>()
-            .WhenInjectedInto<Class2>()
-            .Finalise();
-
-        container
-            .Bind<ConstructorInjection>()
-            .Finalise();
-
-        container.ProcessPendingBindings();
+        container.Bind<Interface1, Class1>().WhenInjectedInto<Class2>();
+        container.Bind<ConstructorInjection>();
 
         Assert.Throws<DependencyException>(() =>
             container.Resolve<ConstructorInjection>(typeof(Consumer)));

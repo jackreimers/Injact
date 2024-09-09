@@ -1,4 +1,4 @@
-namespace Injact;
+namespace Injact.Spatial;
 
 //TODO: Operators for Vector2 and Vector2Int
 public struct Vector2Int : IEquatable<Vector2Int>, IFormattable

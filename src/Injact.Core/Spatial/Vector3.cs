@@ -1,4 +1,4 @@
-namespace Injact;
+namespace Injact.Spatial;
 
 public struct Vector3 : IEquatable<Vector3>, IFormattable
 {

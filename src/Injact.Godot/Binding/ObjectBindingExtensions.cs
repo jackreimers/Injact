@@ -1,6 +1,6 @@
 namespace Injact.Godot;
 
-public static class ObjectBindingBuilderExtensions
+public static class ObjectBindingExtensions
 {
     public static ObjectBindingBuilder FromNode(this ObjectBindingBuilder builder, Node node)
     {

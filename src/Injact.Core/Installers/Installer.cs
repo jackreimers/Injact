@@ -1,4 +1,4 @@
-﻿namespace Injact;
+﻿namespace Injact.Installers;
 
 public abstract class Installer : IInstaller
 {
