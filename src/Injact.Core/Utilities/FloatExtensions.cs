@@ -6,7 +6,7 @@ public static class FloatExtensions
     {
         return value * 0.017453292f;
     }
-    
+
     public static float ToDegrees(this float value)
     {
         return value * 57.29578f;

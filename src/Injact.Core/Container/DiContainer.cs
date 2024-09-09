@@ -71,28 +71,28 @@ public class DiContainer : IDiContainer
         _logger.LogInformation("Dependency injection container initialised.");
     }
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     public ObjectBindingBuilder Bind<TConcrete>()
         where TConcrete : class
     {
         return BindObjectInternal<TConcrete, TConcrete>();
     }
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     public ObjectBindingBuilder Bind<TInterface, TConcrete>()
         where TConcrete : class, TInterface
     {
         return BindObjectInternal<TInterface, TConcrete>();
     }
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     public FactoryBindingBuilder BindFactory<TFactory, TObject>()
         where TFactory : IFactory
     {
         return BindFactoryInternal<TFactory, TFactory, TObject>();
     }
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     public FactoryBindingBuilder BindFactory<TInterface, TFactory, TObject>()
         where TInterface : IFactory
         where TFactory : TInterface
@@ -100,7 +100,7 @@ public class DiContainer : IDiContainer
         return BindFactoryInternal<TInterface, TFactory, TObject>();
     }
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     public TInterface Resolve<TInterface>(Type requestingType)
         where TInterface : class
     {
@@ -113,7 +113,7 @@ public class DiContainer : IDiContainer
         return resolved;
     }
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     public TInterface? Resolve<TInterface>(Type requestingType, bool throwOnNotFound)
         where TInterface : class
     {
@@ -126,7 +126,7 @@ public class DiContainer : IDiContainer
         return resolved;
     }
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     public TInterface Resolve<TInterface>(object requestingObject)
         where TInterface : class
     {
@@ -139,7 +139,7 @@ public class DiContainer : IDiContainer
         return resolved;
     }
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     public TInterface? Resolve<TInterface>(object requestingObject, bool throwOnNotFound)
         where TInterface : class
     {
@@ -152,7 +152,7 @@ public class DiContainer : IDiContainer
         return resolved;
     }
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     public object Resolve(Type requestedType, Type requestingType)
     {
         var resolved = ResolveInternal<object>(requestedType, requestingType);
@@ -164,7 +164,7 @@ public class DiContainer : IDiContainer
         return resolved;
     }
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     public object? Resolve(Type requestedType, Type requestingType, bool throwOnNotFound)
     {
         var resolved = ResolveInternal<object>(requestedType, requestingType);
@@ -176,7 +176,7 @@ public class DiContainer : IDiContainer
         return resolved;
     }
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     public object Resolve(Type requestedType, object requestingObject)
     {
         var resolved = ResolveInternal<object>(requestedType, requestingObject.GetType());
@@ -188,7 +188,7 @@ public class DiContainer : IDiContainer
         return resolved;
     }
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     public object? Resolve(Type requestedType, object requestingObject, bool throwOnNotFound)
     {
         var resolved = ResolveInternal<object>(requestedType, requestingObject.GetType());
@@ -200,7 +200,7 @@ public class DiContainer : IDiContainer
         return resolved;
     }
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     public void AddOptions<T>(string? section = null, string? path = null)
     {
         var workingDirectory = Environment.CurrentDirectory;
@@ -253,21 +253,21 @@ public class DiContainer : IDiContainer
         }
     }
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     public object Create(Type requestedType, bool deferInitialisation = false)
     {
         return CreateInternal(requestedType, deferInitialisation, Array.Empty<object>())
                ?? throw new DependencyException(string.Format(CreateFailedErrorMessage, requestedType.Name));
     }
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     public object Create(Type requestedType, params object[] arguments)
     {
         return CreateInternal(requestedType, false, arguments)
                ?? throw new DependencyException(string.Format(CreateFailedErrorMessage, requestedType.Name));
     }
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     public object Create(Type requestedType, bool deferInitialisation, params object[] arguments)
     {
         return CreateInternal(requestedType, deferInitialisation, arguments)

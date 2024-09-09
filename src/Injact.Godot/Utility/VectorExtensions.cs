@@ -11,12 +11,12 @@ public static class VectorExtensions
     {
         return new NativeVector2(vector.X, vector.Y);
     }
-    
+
     public static EngineVector2 ToEngine(this NativeVector2 vector)
     {
         return new EngineVector2(vector.X, vector.Y);
     }
-    
+
     public static NativeVector3 ToNative(this EngineVector3 vector)
     {
         return new NativeVector3(vector.X, vector.Y, vector.Z);

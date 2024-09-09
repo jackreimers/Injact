@@ -111,7 +111,10 @@ public interface IDiContainer
     /// Create a new instance of a type.
     /// </summary>
     /// <param name="requestedType">The type to be created.</param>
-    /// <param name="deferInitialisation">If true and the object implements <see cref="ILifecycleObject"/>, the container will not call Awake or Start.</param>
+    /// <param name="deferInitialisation">
+    /// If true and the object implements <see cref="ILifecycleObject"/>, the container will
+    /// not call Awake or Start.
+    /// </param>
     /// <remarks>It's recommended to use a factory instead of calling this method directly.</remarks>
     public object Create(Type requestedType, bool deferInitialisation = false);
 
@@ -127,7 +130,10 @@ public interface IDiContainer
     /// Create a new instance of a type.
     /// </summary>
     /// <param name="requestedType">The type to be created.</param>
-    /// <param name="deferInitialisation">If true and the object implements <see cref="ILifecycleObject"/>, the container will not call Awake, Start or Enable.</param>
+    /// <param name="deferInitialisation">
+    /// If true and the object implements <see cref="ILifecycleObject"/>, the container will
+    /// not call Awake, Start or Enable.
+    /// </param>
     /// <param name="arguments">Arguments to be passed to the constructor of the created object.</param>
     /// <remarks>It's recommended to use a factory instead of calling this method directly.</remarks>
     public object Create(Type requestedType, bool deferInitialisation, params object[] arguments);

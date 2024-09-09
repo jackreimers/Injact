@@ -11,7 +11,7 @@ public static class Time
     {
         OnUpdateEvent?.Invoke();
     }
-    
+
     public static void TriggerLateUpdate()
     {
         OnLateUpdateEvent?.Invoke();

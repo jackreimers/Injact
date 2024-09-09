@@ -6,16 +6,15 @@ public partial class Context : Node
 {
     [Inject] private readonly ILogger _logger = null!;
 
-    [ExportCategory("Initialisation")]
-    [Export] private bool searchForNodes = true;
+    [ExportCategory("Initialisation")] [Export]
+    private bool searchForNodes = true;
     [Export] private bool searchForInstallers = true;
 
-    [ExportCategory("References")]
-    [Export] private Node[] injectTargets = Array.Empty<Node>();
+    [ExportCategory("References")] [Export]
+    private Node[] injectTargets = Array.Empty<Node>();
     [Export] private NodeInstaller[] installers = Array.Empty<NodeInstaller>();
 
-    [ExportCategory("Logging")]
-    [Export] private LoggingLevel loggingLevel = LoggingLevel.Information;
+    [ExportCategory("Logging")] [Export] private LoggingLevel loggingLevel = LoggingLevel.Information;
     [Export] private bool logDebugging = true;
     [Export] private bool logTracing = true;
 

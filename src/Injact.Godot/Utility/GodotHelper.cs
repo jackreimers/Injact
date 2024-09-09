@@ -6,7 +6,7 @@ public class GodotHelper
     {
         var nodes = new List<Node>();
         GetAllChildNodesRecursive(startNode, nodes);
-        
+
         return nodes.ToArray();
     }
 

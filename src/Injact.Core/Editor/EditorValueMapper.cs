@@ -4,7 +4,7 @@
 public class EditorValueMapper
 {
     private readonly ILogger _logger;
-    
+
     public EditorValueMapper(ILogger logger)
     {
         _logger = logger;
@@ -14,14 +14,14 @@ public class EditorValueMapper
     {
         var engineType = engineObject.GetType();
         var nativeType = nativeObject.GetType();
-        
+
         const BindingFlags bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly;
-        
+
         var engineTypeFields = engineType
             .GetFields(bindingFlags)
             .Where(s => s.GetCustomAttributes(typeof(MappedAttribute), true).Length > 0)
             .ToArray();
-        
+
         var engineTypeProperties = engineType
             .GetProperties(bindingFlags)
             .Where(s => s.GetCustomAttributes(typeof(MappedAttribute), true).Length > 0)
@@ -36,18 +36,18 @@ public class EditorValueMapper
             .GetFields(bindingFlags)
             .Where(s => s.GetCustomAttributes(typeof(MappedAttribute), true).Length > 0)
             .ToArray();
-        
+
         var nativeTypeProperties = nativeType
             .GetProperties(bindingFlags)
             .Where(s => s.GetCustomAttributes(typeof(MappedAttribute), true).Length > 0)
             .ToArray();
-        
+
         if (nativeTypeFields.Length == 0 && nativeTypeProperties.Length == 0)
         {
             _logger.LogWarning($"{engineType.Name} has values marked for mapping but the native class {nativeType.Name} does not have any matching values!");
             return;
         }
-        
+
         var mappedCount = 0;
 
         foreach (var property in engineTypeFields)
@@ -57,13 +57,13 @@ public class EditorValueMapper
             {
                 continue;
             }
-            
+
             //TODO: Check type is assignable
 
             mappedProperty.SetValue(nativeObject, property.GetValue(engineObject));
             mappedCount++;
         }
-        
+
         foreach (var property in engineTypeProperties)
         {
             var mappedProperty = nativeTypeProperties.FirstOrDefault(s => s.Name == property.Name);
