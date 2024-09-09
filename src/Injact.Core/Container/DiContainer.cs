@@ -316,8 +316,15 @@ public class DiContainer : IDiContainer
             string.Format(TypeAlreadyBoundErrorMessage, typeof(TFactory)));
 
         var binding = new FactoryBinding(typeof(TInterface), typeof(TFactory), typeof(TObject));
-
         _factoryBindings.Add(typeof(TInterface), binding);
+
+        foreach (var deferred in _deferredBindings)
+        {
+            _objectBindings.Add(deferred.Key, deferred.Value);
+        }
+
+        _deferredBindings.Clear();
+
         return new FactoryBindingBuilder(binding);
     }
 
